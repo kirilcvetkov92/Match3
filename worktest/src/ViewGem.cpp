@@ -33,7 +33,7 @@ const char* ViewGem::MapGemStateToDebugLabel(ModelGem::State state) {
 			return "s";
 		case ModelGem::State::MATCHED:
 			return "m";
-		case ModelGem::State::RESTIdsNG:
+		case ModelGem::State::RESTING:
 			return " ";
 		default:
 			return "?";
