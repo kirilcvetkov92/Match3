@@ -21,7 +21,8 @@ public:
 	, mViewGrid(
 		Settings::VIEW_GRID_SPACING,
 		Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
-	, mMouseButtonWasDown(true) {
+	, mMouseButtonWasDown(true)
+    , mGameState(Game::GameState::NEW) {
 	}
 	
 	void Start() {
@@ -34,15 +35,18 @@ public:
 			mMouseButtonWasDown = true;
 		} else if (mMouseButtonWasDown) {
             mMouseButtonWasDown = false;
-            mModelGrid = std::make_shared<ModelGrid>(
-                Settings::MODEL_GRID_WIDTH,
-                Settings::MODEL_GRID_HEIGHT,
-                Settings::MODEL_GRID_MATCH_LENGTH);
-            mViewGrid.SetModel(mModelGrid);
-            mModelGrid->Match();
+            if (mGameState==Game::GameState::NEW)
+            {
+                mGameState = Game::GameState::READY;
+                mModelGrid = std::make_shared<ModelGrid>(
+                    Settings::MODEL_GRID_WIDTH,
+                    Settings::MODEL_GRID_HEIGHT,
+                    Settings::MODEL_GRID_MATCH_LENGTH);
+                mViewGrid.SetModel(mModelGrid);
+                mModelGrid->Match();
+            }
 		}
         mViewGrid.UpdateViews();
-
 		mViewGrid.Render(mEngine);
 	}
 	
@@ -54,6 +58,14 @@ private:
 	ViewGrid mViewGrid;
 	
 	bool mMouseButtonWasDown;
+    
+    enum class GameState {
+        NEW,
+        READY
+    };
+    
+    GameState mGameState;
+    
 };
 
 int main(int argc, char *argv[]) {

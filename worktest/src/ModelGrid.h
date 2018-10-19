@@ -11,11 +11,15 @@ class ModelGrid {
 public:
 	ModelGrid(size_t width, size_t height, size_t matchLength);
 	void Match();
+    void Drop();//kiril
+    void RemoveMatchedGems(); //kiril
+    void MoveDroppedGems(); // kiril
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& GetGems() const;
 
 private:
 	void Initialise();
 	std::vector<std::weak_ptr<ModelGem>> FindMatchedGems() const;
+    std::vector<std::weak_ptr<ModelGem>> FindDroppingGems() const; //kiril
 
 	static bool IsCoordinatePartOfMatch(
 		const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,

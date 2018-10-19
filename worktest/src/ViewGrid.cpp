@@ -22,7 +22,7 @@ void ViewGrid::UpdateViews() {
             }
     }
 	
-	// add new gems
+	// add new gems according to new coordinate
 	if (auto model = mModel.lock()) {
 		const auto& gems = model->GetGems();
 		for (auto iterator : gems) {

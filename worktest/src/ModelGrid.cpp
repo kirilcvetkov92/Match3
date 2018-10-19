@@ -22,6 +22,16 @@ void ModelGrid::Match() {
 			gemPtr->mState = ModelGem::State::MATCHED;
 		}
 	}
+   RemoveMatchedGems();
+}
+
+void ModelGrid::Drop() {
+    std::vector<std::weak_ptr<ModelGem>> droppingGems = FindDroppingGems();
+    for (auto& gem : droppingGems) {
+        if (auto gemPtr = gem.lock()) {
+            gemPtr->mState = ModelGem::State::DROPPING;
+        }
+    }
 }
 
 const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& ModelGrid::GetGems() const {
@@ -53,6 +63,80 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
 	}
 	return result;
 }
+
+std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
+    std::vector<std::weak_ptr<ModelGem>> result;
+    for (auto iterator : mGems) {
+        auto& coordinate = iterator.first;
+        auto& gem = iterator.second;
+        
+        if(gem->mState == ModelGem::State::MATCHED)
+        {
+            for (int i=coordinate.mY+1; i>0; i--)
+            {
+                Coordinate currentCoordinate(i, coordinate.mX);
+                auto iterator = mGems.find(currentCoordinate);
+                auto &candidateDropGem = iterator->second;
+                if(candidateDropGem->mState == ModelGem::State::RESTING)
+                {
+                    result.push_back(candidateDropGem);
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+void ModelGrid::MoveDroppedGems()
+{
+    for(size_t row=mHeight; row>0; row--)
+    {
+        for(size_t column=0; column<mWidth; column++)
+        {
+            Coordinate coordinate(row-1,column);
+            auto iterator = mGems.find(coordinate);
+            
+            if(iterator == mGems.end())
+                continue;
+            
+            auto& gem = iterator->second;
+            if (gem->mState == ModelGem::State::DROPPING){
+                for(size_t currentRow=row-1; currentRow>0; currentRow--)
+                {
+                    Coordinate dropCoordinate(currentRow-1, column);
+                    if(iterator == mGems.end())
+                    {
+                        mGems.erase(coordinate);
+                        mGems.insert({
+                            dropCoordinate,
+                            gem
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ModelGrid::RemoveMatchedGems()
+{
+  
+    for (auto iterator = mGems.cbegin(); iterator != mGems.cend();) {
+        auto& gem = iterator->second;
+        if (gem->mState == ModelGem::State::MATCHED){
+            mGems.erase(iterator++);
+        }
+        else{
+            ++iterator;
+        }
+    }
+}
+
 
 bool ModelGrid::IsCoordinatePartOfMatch(
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,
@@ -107,3 +191,4 @@ bool ModelGrid::IsCoordinatePartOfMatch(
 		checkRun(gems, coordinate, matchLength, iterator->second->mColor, Axis::COLUMN, width) ||
 		checkRun(gems, coordinate, matchLength, iterator->second->mColor, Axis::ROW, height));
 }
+
