@@ -4,5 +4,5 @@
 
 #include <cstddef>
 
-// { column, row } / { x, y }
+// { column, row } / { x, y } 
 typedef Point2<size_t> Coordinate;
