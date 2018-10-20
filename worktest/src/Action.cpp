@@ -13,7 +13,11 @@ namespace King {
         mBegin = steady_clock::now();
         mState = King::Action::State::RUNNING;
     }
-
+    
+    Action::~Action()
+    {
+    }
+    
     void Action::Update()
     {
         if(mState == King::Action::State::RUNNING)

@@ -19,14 +19,14 @@ namespace King
 {
     using namespace std::chrono;
     class Action : public King::Updater {
-        
+    public:
         enum class State {
             FINISHED,
             RUNNING,
         };
         
-    public:
         Action(float seconds);
+        ~Action();
         virtual void Update() override;
         virtual void setSource(Position &position) = 0;
 

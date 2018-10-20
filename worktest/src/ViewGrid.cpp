@@ -43,6 +43,7 @@ void ViewGrid::UpdateViews() {
                 );
                 AddChild(result.first->second.get());
             }
+            
             auto result = mViews.find(gem);
 
             auto& view = result->second;
@@ -57,7 +58,7 @@ void ViewGrid::UpdateViews() {
                 view->SetPosition(MapGridCoordinateToPosition(sourceCoordinate));
 
                 float distance = MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY;
-                float t = distance/(Settings::SPEED*10);
+                float t = distance/(Settings::SPEED*15);
 
                 Position destination(MapGridCoordinateToPosition(destinationCoordinate));
 

@@ -8,9 +8,11 @@
 #include "Settings.h"
 
 ModelGrid::ModelGrid(size_t width, size_t height, size_t matchLength)
-: mWidth(width)
+: mTransitions()
+, mWidth(width)
 , mHeight(height)
 , mMatchLength(matchLength)
+
 {
 	Initialise();
 }
@@ -38,18 +40,25 @@ const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& ModelGrid::GetG
 	return mGems;
 }
 
+const std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& ModelGrid::GetTransitions() const {
+    return mTransitions;
+}
+
+void ModelGrid::ClearTransitions() {
+    return mTransitions.clear();
+}
 void ModelGrid::Initialise() {
 	mGems.clear();
-//    for(size_t column = 0; column < mWidth; column++) {
-//        for(size_t row = 0; row < mHeight; row++) {
-//            mGems.insert({
-//                Coordinate{ column, row },
-//                std::make_unique<ModelGem>(ModelGem::GetRandomColor())
-//            });
-//        }
-//    }
+    for(size_t column = 0; column < mWidth; column++) {
+        for(size_t row = 0; row < mHeight; row++) {
+            mGems.insert({
+                Coordinate{ column, row },
+                std::make_unique<ModelGem>(ModelGem::GetRandomColor())
+            });
+        }
+    }
     
-    GenerateGemsOnTop();
+    //GenerateGemsOnTop();
 }
 
 std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
@@ -88,9 +97,9 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
     return result;
 }
 
-
 void ModelGrid::MoveDroppedGems()
 {
+    mTransitions.clear();
     for(size_t row=mHeight; row>0; row--)
     {
         for(size_t column=0; column<mWidth; column++)
@@ -113,6 +122,7 @@ void ModelGrid::MoveDroppedGems()
                     {
                         mGems.erase(coordinate);
                         mGems.insert({dropCoordinate, gem});
+                        mTransitions.insert({gem, {coordinate, dropCoordinate}});
                         break;
                     }
                 }
@@ -120,7 +130,6 @@ void ModelGrid::MoveDroppedGems()
         }
     }
 }
-
 
 void ModelGrid::GenerateGemsOnTop()
 {
@@ -147,7 +156,6 @@ void ModelGrid::GenerateGemsOnTop()
                             break;
                         }
                     }
-                    
                 }
                 if (row<=mHeight-mMatchLength+1)
                 {
@@ -165,7 +173,6 @@ void ModelGrid::GenerateGemsOnTop()
                             break;
                         }
                     }
-                    
                 }
             }
             mGems.insert({
@@ -177,8 +184,6 @@ void ModelGrid::GenerateGemsOnTop()
 }
 
 
-
-
 std::shared_ptr<ModelGem> ModelGrid::getGem(size_t column, size_t row) const
 {
     Coordinate coordinate(column, row);
@@ -187,41 +192,6 @@ std::shared_ptr<ModelGem> ModelGrid::getGem(size_t column, size_t row) const
         return iterator->second;
     else return nullptr;
 }
-
-//std::vector<Coordinate> ModelGrid::GenerateGemsOnTop()
-//{
-//    std::vector<Coordinate> newGemCoordinates;
-//    size_t maximumHeight = 0;
-//    //Find the  (width+y)-coordinate for new games on the floor
-//    for(size_t column = 0; column < mWidth; column++) {
-//        for(size_t row = 0; row < mHeight; row++) {
-//            Coordinate coordinate(column,row);
-//            auto iterator = mGems.find(coordinate);
-//            if(iterator == mGems.end())
-//            {
-//                size_t currentHeight = coordinate.mY;
-//                if(maximumHeight<currentHeight)
-//                {
-//                    maximumHeight = currentHeight;
-//                }
-//                newGemCoordinates.push_back(coordinate);
-//            }
-//        }
-//    }
-//   // place the gems
-//    std::vector<Coordinate> newGemCoordinates;
-//
-//    for (auto coordinate : newGemCoordinates){
-//        std::shared_ptr<ModelGem> newGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor());
-//        newGem->mState = ModelGem::State::MATCHED;
-//        Coordinate topCoordinate(coordinate.mX, coordinate.mY-(maximumHeight+1));
-//        mGems.insert({
-//            topCoordinate,
-//            newGem
-//        });
-//    }
-//
-//}
 
 void ModelGrid::RemoveMatchedGems()
 {

@@ -10,4 +10,5 @@ namespace Settings {
 	static const float VIEW_GRID_SPACING = 50.0f;
 	
 	static const float VIEW_GEM_DEBUG_LABEL_OFFSET = 20.0f;
+    static const float SPEED = 9.81f;
 }

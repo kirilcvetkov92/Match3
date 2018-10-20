@@ -53,7 +53,12 @@ void View::UpdateAction()
     {
         mAction->Update();
         mPosition = mAction->mCurrentPosition;
+        if(mAction->mState==King::Action::State::FINISHED)
+        {
+            mAction = nullptr;
+        }
     }
+    
 }
 
 void View::Render(King::Engine& engine) {
