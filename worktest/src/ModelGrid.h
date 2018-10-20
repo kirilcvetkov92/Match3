@@ -6,6 +6,8 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include "MoveTo.hpp"
+
 
 class ModelGrid {
 public:
@@ -15,7 +17,9 @@ public:
     void RemoveMatchedGems(); //kiril
     void MoveDroppedGems(); // kiril
     void GenerateGemsOnTop(); //kiril
+    void ClearTransitions();
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& GetGems() const;
+    const std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& GetTransitions() const;
 
 private:
 	void Initialise();
@@ -32,7 +36,8 @@ private:
 		size_t matchLength);
 	
 	std::unordered_map<Coordinate, std::shared_ptr<ModelGem>> mGems;
-	
+    std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>> mTransitions;
+
 	size_t mWidth;
 	size_t mHeight;
 	size_t mMatchLength;

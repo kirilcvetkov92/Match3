@@ -11,20 +11,22 @@
 #include <stdio.h>
 #include "Action.hpp"
 
-namespace King
-{
-    class MoveTo : public King::Action {
-        typedef Position Step;
-        
-        public :
-        MoveTo(Position destination, float seconds, std::weak_ptr<View> view);
-    private:
-        void Initialize();
-        virtual void PerformAction(float period) override;
-        Position mDestination;
-        Step mStep;
-    };
-}
+class MoveTo : public King::Action {
+    typedef Position Step;
+    
+    public :
+    MoveTo(Position destination, float seconds);
+    virtual void setSource(Position &position) override;
+    Position mCurrentPosition;
+
+private:
+    void Initialize();
+    virtual Position PerformAction(float period) override;
+    Position mDestination;
+    Position mSource;
+    Step mStep;
+};
+
 
 
 #endif /* MoveTo_hpp */

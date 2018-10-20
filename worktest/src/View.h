@@ -4,7 +4,7 @@
 
 #include <king/Engine.h>
 #include <vector>
-
+#include "MoveTo.hpp"
 class View {
 public:
 	View();
@@ -23,13 +23,15 @@ public:
 	void RemoveChild(View* view);
 
 	void RemoveAllChildren();
-
+    void RunAction(std::shared_ptr<MoveTo> &action);
+    void UpdateAction();
 	virtual void Render(King::Engine& engine);
+    std::shared_ptr<MoveTo> mAction;
 
 protected:
 	Position mPosition;
 	float mRotation;
-	
+    
 private:
 	std::vector<View*> mChildren;
 };

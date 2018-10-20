@@ -8,29 +8,27 @@
 #include "MoveTo.hpp"
 
 
-namespace King {
-    MoveTo::MoveTo(Position destination, float seconds, std::weak_ptr<View> view):Action(seconds, view),
-    mDestination(destination),
-    mStep(Step(0,0))
-    {
-        Initialize();
-    }
-    
-    void MoveTo::Initialize()
-    {
-        if (auto viewPtr = mView.lock()) {
-            Position mInitialPosition = viewPtr->GetPosition();
-            mStep = Step((mDestination.mX-mInitialPosition.mX)/mSeconds, (mDestination.mY-mInitialPosition.mY)/mSeconds);
-        }
-    }
-    
-    void MoveTo::PerformAction(float period)
-    {
-        if (auto viewPtr = mView.lock()) {
-            Position currentPosition = viewPtr->GetPosition();
-            currentPosition.mX+=mStep.mX;
-            currentPosition.mY+=mStep.mY;
-            viewPtr->SetPosition(currentPosition);
-        }
-    }
+MoveTo::MoveTo(Position destination, float seconds):Action(seconds),
+mDestination(destination),
+mSource(Position(0,0)),
+mCurrentPosition(Position(0,0)),
+mStep(Step(0,0))
+{
+  
 }
+void MoveTo::setSource(Position &position)
+{
+    mSource = Position(position.mX, position.mY);
+    Initialize();
+}
+void MoveTo::Initialize()
+{
+    mStep = Step((mDestination.mX-mSource.mX)/mSeconds, (mDestination.mY-mSource.mY)/mSeconds);
+}
+
+Position MoveTo::PerformAction(float period)
+{
+    mCurrentPosition = Position(mSource.mX+period*mStep.mX,mSource.mY+period*mStep.mY);
+    return mCurrentPosition;
+}
+

@@ -42,6 +42,20 @@ void View::RemoveAllChildren() {
 	mChildren.clear();
 }
 
+void View::RunAction(std::shared_ptr<MoveTo> &action){
+    action->setSource(mPosition);
+    mAction = action;
+}
+
+void View::UpdateAction()
+{
+    if (mAction)
+    {
+        mAction->Update();
+        mPosition = mAction->mCurrentPosition;
+    }
+}
+
 void View::Render(King::Engine& engine) {
 	for(auto* child : mChildren) {
 		child->Render(engine);
