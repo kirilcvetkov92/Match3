@@ -22,7 +22,7 @@ void ModelGrid::Match() {
 			gemPtr->mState = ModelGem::State::MATCHED;
 		}
 	}
-   RemoveMatchedGems();
+
 }
 
 void ModelGrid::Drop() {
@@ -72,18 +72,14 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
         
         if(gem->mState == ModelGem::State::MATCHED)
         {
-            for (int i=coordinate.mY+1; i>0; i--)
+            for (int i=coordinate.mY; i>0; i--)
             {
-                Coordinate currentCoordinate(i, coordinate.mX);
+                Coordinate currentCoordinate(coordinate.mX, i-1);
                 auto iterator = mGems.find(currentCoordinate);
                 auto &candidateDropGem = iterator->second;
                 if(candidateDropGem->mState == ModelGem::State::RESTING)
                 {
                     result.push_back(candidateDropGem);
-                }
-                else
-                {
-                    break;
                 }
             }
         }
@@ -91,30 +87,31 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
     return result;
 }
 
+
 void ModelGrid::MoveDroppedGems()
 {
     for(size_t row=mHeight; row>0; row--)
     {
         for(size_t column=0; column<mWidth; column++)
         {
-            Coordinate coordinate(row-1,column);
+            Coordinate coordinate(column,row-1);
             auto iterator = mGems.find(coordinate);
-            
+
             if(iterator == mGems.end())
                 continue;
-            
-            auto& gem = iterator->second;
+
+            std::shared_ptr<ModelGem> gem = iterator->second;
             if (gem->mState == ModelGem::State::DROPPING){
-                for(size_t currentRow=row-1; currentRow>0; currentRow--)
+                for(size_t currentRow=row; currentRow<mHeight; currentRow++)
                 {
-                    Coordinate dropCoordinate(currentRow-1, column);
-                    if(iterator == mGems.end())
+                    Coordinate dropCoordinate(column, currentRow);
+                    Coordinate nextCoordinate(column, currentRow+1);
+
+                    auto dropIterator = mGems.find(nextCoordinate);
+                    if(dropIterator != mGems.end() || currentRow+1==mHeight)
                     {
                         mGems.erase(coordinate);
-                        mGems.insert({
-                            dropCoordinate,
-                            gem
-                        });
+                        mGems.insert({dropCoordinate, gem});
                         break;
                     }
                 }
@@ -122,6 +119,62 @@ void ModelGrid::MoveDroppedGems()
         }
     }
 }
+
+
+void ModelGrid::GenerateGemsOnTop()
+{
+    for(size_t column = 0; column < mWidth; column++) {
+        for(size_t row = 0; row < mHeight; row++) {
+            Coordinate coordinate(column,row);
+            auto iterator = mGems.find(coordinate);
+            if(iterator == mGems.end())
+            {
+                std::shared_ptr<ModelGem> newGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor());
+                newGem->mState = ModelGem::State::MATCHED;
+                mGems.insert({
+                    coordinate,
+                    newGem
+                });
+            }
+        }
+    }
+}
+
+
+//std::vector<Coordinate> ModelGrid::GenerateGemsOnTop()
+//{
+//    std::vector<Coordinate> newGemCoordinates;
+//    size_t maximumHeight = 0;
+//    //Find the  (width+y)-coordinate for new games on the floor
+//    for(size_t column = 0; column < mWidth; column++) {
+//        for(size_t row = 0; row < mHeight; row++) {
+//            Coordinate coordinate(column,row);
+//            auto iterator = mGems.find(coordinate);
+//            if(iterator == mGems.end())
+//            {
+//                size_t currentHeight = coordinate.mY;
+//                if(maximumHeight<currentHeight)
+//                {
+//                    maximumHeight = currentHeight;
+//                }
+//                newGemCoordinates.push_back(coordinate);
+//            }
+//        }
+//    }
+//   // place the gems
+//    std::vector<Coordinate> newGemCoordinates;
+//
+//    for (auto coordinate : newGemCoordinates){
+//        std::shared_ptr<ModelGem> newGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor());
+//        newGem->mState = ModelGem::State::MATCHED;
+//        Coordinate topCoordinate(coordinate.mX, coordinate.mY-(maximumHeight+1));
+//        mGems.insert({
+//            topCoordinate,
+//            newGem
+//        });
+//    }
+//
+//}
 
 void ModelGrid::RemoveMatchedGems()
 {

@@ -44,6 +44,10 @@ public:
                     Settings::MODEL_GRID_MATCH_LENGTH);
                 mViewGrid.SetModel(mModelGrid);
                 mModelGrid->Match();
+                mModelGrid->Drop();
+                mModelGrid->RemoveMatchedGems();
+                mModelGrid->MoveDroppedGems();
+                mModelGrid->GenerateGemsOnTop();
             }
 		}
         mViewGrid.UpdateViews();

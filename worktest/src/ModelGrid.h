@@ -14,6 +14,7 @@ public:
     void Drop();//kiril
     void RemoveMatchedGems(); //kiril
     void MoveDroppedGems(); // kiril
+    void GenerateGemsOnTop(); //kiril
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& GetGems() const;
 
 private:
