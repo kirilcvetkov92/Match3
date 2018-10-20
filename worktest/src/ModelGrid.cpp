@@ -5,7 +5,7 @@
 #include <string>
 #include <cassert>
 #include <algorithm>
-
+#include "Settings.h"
 
 ModelGrid::ModelGrid(size_t width, size_t height, size_t matchLength)
 : mWidth(width)
@@ -40,15 +40,16 @@ const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& ModelGrid::GetG
 
 void ModelGrid::Initialise() {
 	mGems.clear();
-	
-	for(size_t column = 0; column < mWidth; column++) {
-		for(size_t row = 0; row < mHeight; row++) {
-			mGems.insert({
-				Coordinate{ column, row },
-				std::make_unique<ModelGem>(ModelGem::GetRandomColor())
-			});
-		}
-	}
+//    for(size_t column = 0; column < mWidth; column++) {
+//        for(size_t row = 0; row < mHeight; row++) {
+//            mGems.insert({
+//                Coordinate{ column, row },
+//                std::make_unique<ModelGem>(ModelGem::GetRandomColor())
+//            });
+//        }
+//    }
+    
+    GenerateGemsOnTop();
 }
 
 std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
@@ -123,23 +124,69 @@ void ModelGrid::MoveDroppedGems()
 
 void ModelGrid::GenerateGemsOnTop()
 {
-    for(size_t column = 0; column < mWidth; column++) {
-        for(size_t row = 0; row < mHeight; row++) {
-            Coordinate coordinate(column,row);
-            auto iterator = mGems.find(coordinate);
-            if(iterator == mGems.end())
+    for(size_t column = 0; column<mWidth; column++) {
+        for(size_t row = mHeight; row>0; row--) {
+            const auto &gem = getGem(column, row-1);
+            std::vector<ModelGem::Color> restrictedColors;
+            if (!gem)
             {
-                std::shared_ptr<ModelGem> newGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor());
-                newGem->mState = ModelGem::State::MATCHED;
-                mGems.insert({
-                    coordinate,
-                    newGem
-                });
+                if (column>=mMatchLength-1)
+                {
+                    int currentCol=column-1;
+                    const auto &horizontalNeighbour = getGem(currentCol, row-1);
+                    
+                    ModelGem::Color color = horizontalNeighbour->mColor;
+                    restrictedColors.push_back(color);
+                    int limit = column-mMatchLength+1;
+                    for(; currentCol>=limit; currentCol--)
+                    {
+                        const auto &horizontalNeighbour = getGem(currentCol, row-1);
+                        if(horizontalNeighbour->mColor!=color)
+                        {
+                            restrictedColors.pop_back();
+                            break;
+                        }
+                    }
+                    
+                }
+                if (row<=mHeight-mMatchLength+1)
+                {
+                    int currentRow=row;
+                    const auto &horizontalNeighbour = getGem(column, currentRow);
+                    
+                    ModelGem::Color color = horizontalNeighbour->mColor;
+                    restrictedColors.push_back(color);
+                    for(; currentRow<row+mMatchLength-1; currentRow++)
+                    {
+                        const auto &horizontalNeighbour = getGem(column, currentRow);
+                        if(horizontalNeighbour->mColor!=color)
+                        {
+                            restrictedColors.pop_back();
+                            break;
+                        }
+                    }
+                    
+                }
             }
+            mGems.insert({
+                Coordinate{ column, row-1},
+                std::make_unique<ModelGem>(ModelGem::GetRandomColor(restrictedColors))
+            });
         }
     }
 }
 
+
+
+
+std::shared_ptr<ModelGem> ModelGrid::getGem(size_t column, size_t row) const
+{
+    Coordinate coordinate(column, row);
+    auto iterator = mGems.find(coordinate);
+    if(iterator != mGems.end())
+        return iterator->second;
+    else return nullptr;
+}
 
 //std::vector<Coordinate> ModelGrid::GenerateGemsOnTop()
 //{

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Coordinate.h"
+#include <iostream>
 
 class ModelGem {
 public:
+    
 	enum class Color {
 		BLUE,
 		GREEN,
@@ -25,4 +27,7 @@ public:
 	Color mColor;
 
 	static Color GetRandomColor();
+    static Color GetRandomColor(std::vector<Color> restrictedColors);
+
+    void toString();
 };

@@ -21,6 +21,8 @@ private:
 	void Initialise();
 	std::vector<std::weak_ptr<ModelGem>> FindMatchedGems() const;
     std::vector<std::weak_ptr<ModelGem>> FindDroppingGems() const; //kiril
+    std::vector<std::weak_ptr<ModelGem>> GenerateGemsWithDifficulty(size_t difficulty, size_t row, size_t column) const; //kiril
+    std::shared_ptr<ModelGem> getGem(size_t column, size_t row) const; 
 
 	static bool IsCoordinatePartOfMatch(
 		const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,

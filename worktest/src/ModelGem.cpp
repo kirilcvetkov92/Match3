@@ -22,4 +22,51 @@ ModelGem::Color ModelGem::GetRandomColor() {
 	size_t index = distribution(randomDevice);
 
 	return COLORS[index];
+    
 }
+
+
+ModelGem::Color ModelGem::GetRandomColor(std::vector<ModelGem::Color> restrictedColors) {
+    static std::vector<Color> COLORS = {
+        Color::BLUE,
+        Color::GREEN,
+        Color::PURPLE,
+        Color::RED,
+        Color::YELLOW
+    };
+    static std::random_device rd;
+    static std::mt19937 g(rd());
+    
+    std::shuffle(COLORS.begin(), COLORS.end(), g);
+
+    for(int i=0; i<COLORS.size(); i++)
+    {
+        bool found = (std::find(restrictedColors.begin(), restrictedColors.end(), COLORS[i]) != restrictedColors.end());
+        if (!found)
+            return COLORS[i];
+    }
+    return Color::RED;
+
+}
+
+void ModelGem::toString()
+{
+    if (mColor==Color::BLUE)
+    {
+        std::cout<<"BLUE";
+    }
+    else if (mColor == Color::GREEN)
+    {
+        std::cout<<"Green";
+    }
+    else if (mColor==Color::RED)
+    {
+        std::cout<<"Red";
+    }
+    else{
+        std::cout<<"Yellow";
+    }
+    
+}
+
+
