@@ -19,13 +19,12 @@ namespace King
     public:
         Action(float seconds, std::weak_ptr<View> view);
         virtual void Update() override;
-        
+        virtual void PerformAction(float period) = 0;
+        State mState;
+
     protected:
-        int mSeconds;
+        float mSeconds;
         steady_clock::time_point mBegin;
         std::weak_ptr<View> mView;
-        State mState;
-    public:
-        virtual void PerformAction(float period) = 0;
     };
 }
