@@ -15,6 +15,8 @@
 #endif
 
 class Game : public King::Updater {
+    typedef Position ClickPosition;
+    
 public:
 	Game()
 	: mEngine(ASSETS_PATH)
@@ -22,7 +24,8 @@ public:
 		Settings::VIEW_GRID_SPACING,
 		Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
 	, mMouseButtonWasDown(true)
-    , mGameState(Game::GameState::NEW) {
+    , mGameState(Game::GameState::NEW)
+    , mStartClick(-1,-1) {
 	}
 	
 	void Start() {
@@ -33,7 +36,17 @@ public:
 	void Update() override {
 		if (mEngine.GetMouseButtonDown()) {
 			mMouseButtonWasDown = true;
-		} else if (mMouseButtonWasDown) {
+            
+            if(mGameState==GameState::READY)
+                mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+            
+            mGameState=GameState::CLICK;
+            
+            Position currentPosition(mEngine.GetMouseX(), mEngine.GetMouseY());
+            mViewGrid.ApplyInteraction(mStartClick, currentPosition);
+            
+		}
+        else if (mMouseButtonWasDown) {
             mMouseButtonWasDown = false;
             if (mGameState==Game::GameState::NEW)
             {
@@ -47,9 +60,18 @@ public:
                 mModelGrid->Drop();
                 mModelGrid->RemoveMatchedGems();
                 mModelGrid->MoveDroppedGems();
-                mModelGrid->GenerateGemsOnTop();
+                //mModelGrid->GenerateGemsOnTop();
             }
 		}
+        
+        if (!mEngine.GetMouseButtonDown())
+        {
+            if (mGameState==GameState::CLICK)
+            {
+                mGameState = GameState::READY;
+            }
+        }
+        
         mViewGrid.UpdateViews();
 		mViewGrid.Render(mEngine);
 	}
@@ -63,13 +85,15 @@ private:
 	
 	bool mMouseButtonWasDown;
     
+    Position mStartClick;
+    
     enum class GameState {
         NEW,
-        READY
+        READY,
+        CLICK
     };
     
     GameState mGameState;
-    
 };
 
 int main(int argc, char *argv[]) {

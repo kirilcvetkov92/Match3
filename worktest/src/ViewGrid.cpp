@@ -41,7 +41,8 @@ void ViewGrid::UpdateViews() {
                     gem,
                     std::make_unique<ViewGem>(gem, mGemDebugLabelOffset)}
                 );
-                AddChild(result.first->second.get());
+                auto view = result.first->second.get();
+                AddChild(view);
             }
             
             auto result = mViews.find(gem);
@@ -57,7 +58,7 @@ void ViewGrid::UpdateViews() {
 
                 view->SetPosition(MapGridCoordinateToPosition(sourceCoordinate));
 
-                float distance = MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY;
+                float distance = abs(MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY)+abs(MapGridCoordinateToPosition(destinationCoordinate).mX-MapGridCoordinateToPosition(sourceCoordinate).mX);
                 float t = distance/(Settings::SPEED);
 
                 Position destination(MapGridCoordinateToPosition(destinationCoordinate));
@@ -67,11 +68,10 @@ void ViewGrid::UpdateViews() {
             }
             else
             {
+//                std::cout<<"--Coordinate--"<<coordinate.mX<<" "<<coordinate.mY<<std::endl;
+
+                view->SetPosition(MapGridCoordinateToPosition(coordinate));
                 view->UpdateAction();
-                if(!view->mAction)
-                {
-                    view->SetPosition(MapGridCoordinateToPosition(coordinate));
-                }
             }
             
         }
@@ -79,7 +79,20 @@ void ViewGrid::UpdateViews() {
     }
 }
 
-        
+void ViewGrid::ApplyInteraction(Position onClick, Position onMove)
+{
+    Coordinate gemOnClick = MapPositionCoordinateToGrid(onClick);
+    Coordinate gemOnMove= MapPositionCoordinateToGrid(onMove);
+
+    if(!(gemOnClick==gemOnMove))
+    {
+        //find nearest neighbours
+        if (auto model = mModel.lock()) {
+            model->TryMatch(gemOnClick, gemOnMove);
+        }
+    }
+}
+
 Position ViewGrid::MapGridCoordinateToPosition(Coordinate coordinate) {
     Position position(
                       (mPosition.mX + (coordinate.mX * mGemSpacing)),

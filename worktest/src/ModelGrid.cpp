@@ -27,6 +27,62 @@ void ModelGrid::Match() {
 
 }
 
+void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
+{
+    std::pair<int, int> neighbours[] = {{1,0}, {0,1}, {-1,0}, {0,-1}};
+    size_t minDistance = INT_MAX;
+    Coordinate nearestNeighbour = gemFrom;
+    for (auto neighbour : neighbours)
+    {
+        int mx = (int)gemFrom.mX+neighbour.first;
+        int my = (int)gemFrom.mY+neighbour.second;
+        Coordinate gemNeighbourPosition = Coordinate(mx, my);
+        if(mGems.count(gemNeighbourPosition))
+        {
+            int distanceX = gemNeighbourPosition.mX-gemTo.mX;
+            int distanceY = gemNeighbourPosition.mY-gemTo.mY;
+            size_t distance = fabs(distanceX+fabs(distanceY));
+            if(distance<minDistance)
+            {
+                minDistance=distance;
+                nearestNeighbour = gemNeighbourPosition;
+            }
+        }
+    }
+    
+    gemTo = nearestNeighbour;
+    std::cout<<nearestNeighbour.mX<<" "<<nearestNeighbour.mY<<std::endl;
+    
+    std::shared_ptr<ModelGem> modelGemFrom = mGems[gemFrom];
+    std::shared_ptr<ModelGem> modelGemTo = mGems[gemTo];
+    
+    
+    mGems[gemTo]=modelGemFrom;
+    mGems[gemFrom]=modelGemTo;
+    
+
+    std::vector<std::weak_ptr<ModelGem>> matchedGems = FindMatchedGems();
+    
+    bool found = false;
+    for(auto &gem : matchedGems)
+    {
+        if(auto gem_ptr = gem.lock())
+        {
+            if(modelGemFrom==gem_ptr || gem_ptr == modelGemTo)
+            {
+                mTransitions.insert({modelGemFrom, {gemFrom, gemTo}});
+                mTransitions.insert({modelGemTo, {gemTo, gemFrom}});
+                found=true;
+            }
+        }
+    }
+    if(!found)
+    {
+        mGems[gemTo]=modelGemTo;
+        mGems[gemFrom]=modelGemFrom;
+    }
+}
+
 void ModelGrid::Drop() {
     std::vector<std::weak_ptr<ModelGem>> droppingGems = FindDroppingGems();
     for (auto& gem : droppingGems) {
@@ -194,7 +250,6 @@ std::shared_ptr<ModelGem> ModelGrid::getGem(size_t column, size_t row) const
 
 void ModelGrid::RemoveMatchedGems()
 {
-  
     for (auto iterator = mGems.cbegin(); iterator != mGems.cend();) {
         auto& gem = iterator->second;
         if (gem->mState == ModelGem::State::MATCHED){

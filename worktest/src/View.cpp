@@ -13,7 +13,10 @@ View::~View()
 {}
 
 void View::SetPosition(Position position) {
-	mPosition = position;
+    if(!mAction)
+    {
+        mPosition = position;
+    }
 }
 
 void View::SetPosition(float x, float y) {
@@ -43,8 +46,11 @@ void View::RemoveAllChildren() {
 }
 
 void View::RunAction(std::shared_ptr<MoveTo> &action){
-    action->setSource(mPosition);
-    mAction = action;
+    if(!mAction)
+    {
+        action->setSource(mPosition);
+        mAction = action;
+    }
 }
 
 void View::UpdateAction()

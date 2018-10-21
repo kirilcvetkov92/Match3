@@ -20,7 +20,9 @@ public:
     void ClearTransitions();
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& GetGems() const;
     const std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& GetTransitions() const;
-
+    
+    void TryMatch(Coordinate gemFrom, Coordinate gemTo);
+    
 private:
 	void Initialise();
 	std::vector<std::weak_ptr<ModelGem>> FindMatchedGems() const;
