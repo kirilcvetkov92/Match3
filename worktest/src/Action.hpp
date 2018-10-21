@@ -28,15 +28,15 @@ namespace King
         Action(float seconds);
         ~Action();
         virtual void Update() override;
-        virtual void setSource(Position &position) = 0;
-
+        
         State mState;
 
     protected:
-        virtual Position PerformAction(float period) = 0;
+        virtual void PerformAction(float period) = 0;
+        virtual void OnActionFinished() = 0;
+
         float mSeconds;
         steady_clock::time_point mBegin;
-        
     };
 }
 

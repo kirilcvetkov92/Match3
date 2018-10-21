@@ -63,6 +63,7 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
 
     std::vector<std::weak_ptr<ModelGem>> matchedGems = FindMatchedGems();
     
+    //todo refactor
     bool found = false;
     for(auto &gem : matchedGems)
     {

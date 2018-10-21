@@ -33,6 +33,7 @@ namespace King {
                 PerformAction(nseconds);
             }
             else{
+                OnActionFinished();
                 mState = King::Action::State::FINISHED;
             }
         }

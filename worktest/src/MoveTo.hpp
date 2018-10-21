@@ -16,13 +16,14 @@ class MoveTo : public King::Action {
     
     public :
         MoveTo(Position destination, float seconds);
-        virtual void setSource(Position &position) override;
+        virtual void setSource(Position &position);
         Position mCurrentPosition;
         Position mDestination;
 
-private:
+protected:
     void Initialize();
-    virtual Position PerformAction(float period) override;
+    virtual void PerformAction(float period) override;
+    virtual void OnActionFinished() override;
     Position mSource;
     Step mStep;
 };

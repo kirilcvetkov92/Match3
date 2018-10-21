@@ -26,9 +26,13 @@ void MoveTo::Initialize()
     mStep = Step((mDestination.mX-mSource.mX)/mSeconds, (mDestination.mY-mSource.mY)/mSeconds);
 }
 
-Position MoveTo::PerformAction(float period)
+void MoveTo::PerformAction(float period)
 {
     mCurrentPosition = Position(mSource.mX+period*mStep.mX,mSource.mY+period*mStep.mY);
-    return mCurrentPosition;
 }
 
+
+void MoveTo::OnActionFinished()
+{
+    //todo
+}
