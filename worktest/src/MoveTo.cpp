@@ -9,9 +9,9 @@
 
 
 MoveTo::MoveTo(Position destination, float seconds):Action(seconds),
+mCurrentPosition(Position(0,0)),
 mDestination(destination),
 mSource(Position(0,0)),
-mCurrentPosition(Position(0,0)),
 mStep(Step(0,0))
 {
   

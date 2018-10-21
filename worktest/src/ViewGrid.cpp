@@ -58,7 +58,7 @@ void ViewGrid::UpdateViews() {
                 view->SetPosition(MapGridCoordinateToPosition(sourceCoordinate));
 
                 float distance = MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY;
-                float t = distance/(Settings::SPEED*15);
+                float t = distance/(Settings::SPEED);
 
                 Position destination(MapGridCoordinateToPosition(destinationCoordinate));
 

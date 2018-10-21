@@ -15,14 +15,14 @@ class MoveTo : public King::Action {
     typedef Position Step;
     
     public :
-    MoveTo(Position destination, float seconds);
-    virtual void setSource(Position &position) override;
-    Position mCurrentPosition;
+        MoveTo(Position destination, float seconds);
+        virtual void setSource(Position &position) override;
+        Position mCurrentPosition;
+        Position mDestination;
 
 private:
     void Initialize();
     virtual Position PerformAction(float period) override;
-    Position mDestination;
     Position mSource;
     Step mStep;
 };

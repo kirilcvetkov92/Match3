@@ -55,10 +55,10 @@ void View::UpdateAction()
         mPosition = mAction->mCurrentPosition;
         if(mAction->mState==King::Action::State::FINISHED)
         {
+            mPosition = mAction->mDestination;
             mAction = nullptr;
         }
     }
-    
 }
 
 void View::Render(King::Engine& engine) {
@@ -66,3 +66,16 @@ void View::Render(King::Engine& engine) {
 		child->Render(engine);
 	}
 }
+
+Position View::ConvertToViewSpace(Position globalPosition)
+{
+    return Position(globalPosition.mX-mPosition.mX, globalPosition.mY-mPosition.mY);
+}
+
+Position View::ConvertToWorldSpace(Position viewPosition)
+{
+    return Position(viewPosition.mX+mPosition.mX, viewPosition.mY+mPosition.mY);
+}
+
+
+

@@ -99,7 +99,6 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
 
 void ModelGrid::MoveDroppedGems()
 {
-    mTransitions.clear();
     for(size_t row=mHeight; row>0; row--)
     {
         for(size_t column=0; column<mWidth; column++)
