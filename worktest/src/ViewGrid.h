@@ -20,7 +20,8 @@ public:
 	void UpdateViews();
 	
 	Position MapGridCoordinateToPosition(Coordinate coordinate);
-	
+    Coordinate MapPositionCoordinateToGrid(Position coordinate);
+
 private:
 	std::map<std::weak_ptr<ModelGem>, std::unique_ptr<ViewGem>, std::owner_less<std::weak_ptr<ModelGem>>> mViews;
 	std::weak_ptr<ModelGrid> mModel;

@@ -87,4 +87,12 @@ Position ViewGrid::MapGridCoordinateToPosition(Coordinate coordinate) {
     return position;
 }
 
+Coordinate ViewGrid::MapPositionCoordinateToGrid(Position position) {
+    int posX = fmax(0,fmin(Settings::MODEL_GRID_WIDTH-1, floor(position.mX+mGemSpacing/2-mPosition.mX)/(mGemSpacing)));
+    int posY = fmax(0, fmin(Settings::MODEL_GRID_HEIGHT-1, floor(position.mY+mGemSpacing/2-mPosition.mY)/(mGemSpacing)));
+    
+    Coordinate coordinate(posX, posY);
+    return coordinate;
+}
+
 
