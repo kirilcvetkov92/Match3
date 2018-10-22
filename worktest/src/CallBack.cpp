@@ -7,8 +7,6 @@
 
 #include "CallBack.hpp"
 
-
-
 CallBack::CallBack(const std::function<void()> &func, float seconds):Action(seconds)
 {
     mFunction = func;
@@ -16,7 +14,7 @@ CallBack::CallBack(const std::function<void()> &func, float seconds):Action(seco
 
 CallBack::~CallBack()
 {
- 
+
 }
 void CallBack::Initialize()
 {
@@ -30,11 +28,12 @@ void CallBack::OnActionFinished()
 
 void CallBack::PerformAction(float period)
 {
-    //todo
+    GetTimeRemaining();
 }
 
-int CallBack::GetTimeRemaining()
+float CallBack::GetTimeRemaining()
 {
+
     return mSeconds;
 }
 

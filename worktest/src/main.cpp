@@ -9,6 +9,7 @@
 #include <king/Updater.h>
 #include "ViewText.h"
 #include "CallBack.hpp"
+#include <set>
 #include <sstream>
 
 #ifdef __APPLE__
@@ -26,6 +27,7 @@ public:
 	, mViewGrid(
 		Settings::VIEW_GRID_SPACING,
 		Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
+    , mCallBacks()
 	, mMouseButtonWasDown(true)
     , mStartClick(-1,-1)
     , mGameState(Game::GameState::NEW){
@@ -62,8 +64,8 @@ public:
         mTime = seconds;
         auto callBackEnd = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnGameEnd, this), seconds);
         auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
-        mCallBacks.push_back(callBackEnd);
-        mCallBacks.push_back(callBackTime);
+        mCallBacks.insert(callBackEnd);
+        mCallBacks.insert(callBackTime);
     }
     
     void SetCounter(int seconds)
@@ -77,27 +79,29 @@ public:
     void UpdateCallBacks()
     {
         // Iterate over the vector till end
-        std::vector<int> indicesForRemoval;
-        for(int i=0; i<mCallBacks.size(); i++)
+        std::vector<std::shared_ptr<CallBack>> callbacksForRemoval;
+        
+        for(auto callback : mCallBacks)
         {
-            auto callback = mCallBacks[i];
             if (callback->mState == King::Action::State::FINISHED)
             {
-                indicesForRemoval.push_back(i);
+                callbacksForRemoval.push_back(callback);
             }
             else
                 callback->Update();
      
         }
-        for(int removeInx : indicesForRemoval)
+       
+        for(auto callback : callbacksForRemoval)
         {
-            mCallBacks.erase(mCallBacks.begin() + removeInx);
+            mCallBacks.erase(callback);
         }
+
     }
     
 	void Update() override {
         
-		if (mEngine.GetMouseButtonDown() && mGameState!=GameState::IDLE) {
+		if (mEngine.GetMouseButtonDown() && !isClickPaused()) {
 			mMouseButtonWasDown = true;
             
             if(mGameState==GameState::READY)
@@ -105,9 +109,12 @@ public:
             
             mGameState=GameState::CLICK;
             Position currentPosition(mEngine.GetMouseX(), mEngine.GetMouseY());
+            
             if(mViewGrid.ApplyInteraction(mStartClick, currentPosition))
             {
-                mGameState=GameState::IDLE;
+                PauseClick();
+                auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::ResumeClick, this), 0.5);
+                mCallBacks.insert(callBackTime);
             }
             
 		}
@@ -138,13 +145,14 @@ public:
         }
         
         mViewGrid.UpdateViews();
-		mRoot->Render(mEngine);
         UpdateCallBacks();
+
+		mRoot->Render(mEngine);
 	}
 	
     void OnGameEnd()
     {
-        std::cout<<"END";
+        //todo
     }
     
     void OnSecondElapsed()
@@ -152,8 +160,19 @@ public:
         mTime = mTime-1;
         SetCounter(mTime);
         auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
-        mCallBacks.push_back(callBackTime);
+        mCallBacks.insert(callBackTime);
 
+    }
+    
+    bool isClickPaused(){
+        return mGameState == GameState::IDLE;
+    }
+    void PauseClick(){
+        mGameState = GameState::IDLE;
+    }
+    void ResumeClick()
+    {
+        mGameState = GameState::READY;
     }
     
 private:
@@ -165,7 +184,7 @@ private:
     std::unique_ptr<ViewSprite> mBackground;
     std::unique_ptr<ViewText> mCounter;
     std::unique_ptr<View> mRoot;
-    std::vector<std::shared_ptr<CallBack>> mCallBacks;
+    std::set<std::shared_ptr<CallBack>> mCallBacks;
     
 	bool mMouseButtonWasDown;
     int mTime=60;

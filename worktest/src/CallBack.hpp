@@ -25,7 +25,7 @@ class CallBack : public King::Action
     public :
     CallBack(const std::function<void()> &func, float seconds);
     ~CallBack();
-    int GetTimeRemaining();
+    float GetTimeRemaining();
     
 protected:
     

@@ -7,9 +7,8 @@
 
 #include "Action.hpp"
 namespace King {
-    Action::Action(float seconds) {
+    Action::Action(float seconds):mState(King::Action::State::PENDING) {
         mSeconds = seconds;
-        mState = King::Action::State::PENDING;
     }
     
     Action::~Action()
@@ -37,13 +36,11 @@ namespace King {
                 PerformAction(nseconds);
             }
             else{
-                OnActionFinished();
                 mState = King::Action::State::FINISHED;
+                OnActionFinished();
             }
         }
-        else{
-            mState = King::Action::State::FINISHED;
-        }
+
     }
 }
 

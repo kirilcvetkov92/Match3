@@ -63,7 +63,6 @@ void ViewGrid::UpdateViews() {
                 
                 float distance = abs(MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY)+abs(MapGridCoordinateToPosition(destinationCoordinate).mX-MapGridCoordinateToPosition(sourceCoordinate).mX);
                 float t = distance/(Settings::SPEED);
-                std::cout<<"time"<<t<<std::endl;
                 Position destination(MapGridCoordinateToPosition(destinationCoordinate));
                 
                 std::shared_ptr<MoveTo> action = std::make_shared<MoveTo>(destination, t);
