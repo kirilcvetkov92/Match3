@@ -20,7 +20,7 @@ public:
     void GenerateGemsOnTop(); //kiril
     void ClearTransitions();
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& GetGems() const;
-    const std::multimap<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& GetTransitions() const;
+    const std::multimap<std::shared_ptr<ModelGem>, std::pair<Position,Position>>& GetTransitions() const;
     
     void TryMatch(Coordinate gemFrom, Coordinate gemTo);
     
@@ -39,7 +39,7 @@ private:
 		size_t matchLength);
 	
 	std::unordered_map<Coordinate, std::shared_ptr<ModelGem>> mGems;
-    std::multimap<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>> mTransitions;
+    std::multimap<std::shared_ptr<ModelGem>, std::pair<Position,Position>> mTransitions;
 
 	size_t mWidth;
 	size_t mHeight;

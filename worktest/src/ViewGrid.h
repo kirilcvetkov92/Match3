@@ -21,6 +21,8 @@ public:
 	
 	Position MapGridCoordinateToPosition(Coordinate coordinate);
     Coordinate MapPositionCoordinateToGrid(Position coordinate);
+    Position MapGridPositionToGlobalPosition(Position coordinate);
+
     bool ApplyInteraction(Position onClick, Position onMove);
     
 private:

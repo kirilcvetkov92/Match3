@@ -55,15 +55,15 @@ void ViewGrid::UpdateViews() {
                 
                 auto transition = it->second;
           
-                Coordinate sourceCoordinate = transition.first;
-                Coordinate destinationCoordinate = transition.second;
+                Position sourceCoordinateS = transition.first;
+                Position destinationCoordinateS = transition.second;
                 
                 if(it==result.first)
-                    gemView->SetPosition(MapGridCoordinateToPosition(sourceCoordinate));
+                    gemView->SetPosition(MapGridPositionToGlobalPosition(sourceCoordinateS));
                 
-                float distance = abs(MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY)+abs(MapGridCoordinateToPosition(destinationCoordinate).mX-MapGridCoordinateToPosition(sourceCoordinate).mX);
+                float distance = abs(MapGridPositionToGlobalPosition(destinationCoordinateS).mY - MapGridPositionToGlobalPosition(sourceCoordinateS).mY)+abs(MapGridPositionToGlobalPosition(destinationCoordinateS).mX-MapGridPositionToGlobalPosition(sourceCoordinateS).mX);
                 float t = distance/(Settings::SPEED);
-                Position destination(MapGridCoordinateToPosition(destinationCoordinate));
+                Position destination(MapGridPositionToGlobalPosition(destinationCoordinateS));
                 
                 std::shared_ptr<MoveTo> action = std::make_shared<MoveTo>(destination, t);
                 gemView->RunMoveAction(action);
@@ -100,6 +100,14 @@ Position ViewGrid::MapGridCoordinateToPosition(Coordinate coordinate) {
                       (mPosition.mY + (coordinate.mY * mGemSpacing)));
     return position;
 }
+
+Position ViewGrid::MapGridPositionToGlobalPosition(Position coordinate) {
+    Position position(
+                      (mPosition.mX + (coordinate.mX * mGemSpacing)),
+                      (mPosition.mY + (coordinate.mY * mGemSpacing)));
+    return position;
+}
+
 
 Coordinate ViewGrid::MapPositionCoordinateToGrid(Position position) {
     int posX = fmax(0,fmin(Settings::MODEL_GRID_WIDTH-1, floor(position.mX+mGemSpacing/2-mPosition.mX)/(mGemSpacing)));
