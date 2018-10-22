@@ -87,6 +87,8 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
     {
         mGems[gemTo]=modelGemTo;
         mGems[gemFrom]=modelGemFrom;
+        modelGemFrom->mState=ModelGem::State::SWAPPING;
+        modelGemTo->mState=ModelGem::State::SWAPPING;
         mTransitions.insert({modelGemFrom, {gemFrom, gemTo}});
         mTransitions.insert({modelGemTo, {gemTo, gemFrom}});
         mTransitions.insert({modelGemFrom, {gemTo, gemFrom}});

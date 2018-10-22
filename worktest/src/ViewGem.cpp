@@ -43,7 +43,7 @@ const char* ViewGem::MapGemStateToDebugLabel(ModelGem::State state) {
 void ViewGem::UpdateMoveActions()
 {
     View::UpdateMoveActions();
-    if(!mCurrentMoveAction)
+    if(!mCurrentMoveAction && mMoveActions.empty())
     {
         if (auto model = mModel.lock()) {
             if(model->mState==ModelGem::State::DROPPING || model->mState==ModelGem::State::SWAPPING)
