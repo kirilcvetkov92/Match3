@@ -13,7 +13,7 @@ View::~View()
 {}
 
 void View::SetPosition(Position position) {
-    if(!mAction)
+    if(!mCurrentMoveAction)
     {
         mPosition = position;
     }
@@ -45,24 +45,34 @@ void View::RemoveAllChildren() {
 	mChildren.clear();
 }
 
-void View::RunAction(std::shared_ptr<MoveTo> &action){
-    if(!mAction)
+void View::RunMoveAction(std::shared_ptr<MoveTo> &action){
+    mMoveActions.push(action);
+    if(!mMoveActions.empty() && !mCurrentMoveAction)
     {
-        action->setSource(mPosition);
-        mAction = action;
+        mCurrentMoveAction = mMoveActions.front();
+        mMoveActions.pop();
+        mCurrentMoveAction->setSource(mPosition);
     }
 }
 
-void View::UpdateAction()
+void View::UpdateMoveActions()
 {
-    if (mAction)
+    
+    if(!mMoveActions.empty() && !mCurrentMoveAction)
     {
-        mAction->Update();
-        mPosition = mAction->mCurrentPosition;
-        if(mAction->mState==King::Action::State::FINISHED)
+        mCurrentMoveAction = mMoveActions.front();
+        mMoveActions.pop();
+        mCurrentMoveAction->setSource(mPosition);
+    }
+    
+    if (mCurrentMoveAction)
+    {
+        mCurrentMoveAction->Update();
+        mPosition = mCurrentMoveAction->mCurrentPosition;
+        if(mCurrentMoveAction->mState==King::Action::State::FINISHED)
         {
-            mPosition = mAction->mDestination;
-            mAction = nullptr;
+            mPosition = mCurrentMoveAction->mDestination;
+            mCurrentMoveAction = nullptr;
         }
     }
 }

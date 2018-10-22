@@ -3,7 +3,7 @@
 #include "Position.h"
 
 #include <king/Engine.h>
-#include <vector>
+#include <queue>
 #include "MoveTo.hpp"
 class View {
 public:
@@ -21,16 +21,17 @@ public:
 	void RemoveChild(View* view);
 
 	void RemoveAllChildren();
-    void RunAction(std::shared_ptr<MoveTo> &action);
-    void UpdateAction();
     
     Position ConvertToViewSpace(Position globalPosition);
     Position ConvertToWorldSpace(Position viewPosition);
 
 	virtual void Render(King::Engine& engine);
-    
-    std::shared_ptr<MoveTo> mAction;
+    virtual void RunMoveAction(std::shared_ptr<MoveTo> &action);
+    virtual void UpdateMoveActions();
+    std::queue<std::shared_ptr<MoveTo>> mMoveActions;
+    std::shared_ptr<MoveTo> mCurrentMoveAction;
 protected:
+
 	Position mPosition;
 	float mRotation;
     

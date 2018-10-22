@@ -64,14 +64,14 @@ void ViewGrid::UpdateViews() {
                 Position destination(MapGridCoordinateToPosition(destinationCoordinate));
 
                 std::shared_ptr<MoveTo> action = std::make_shared<MoveTo>(destination, t);
-                view->RunAction(action);
+                view->RunMoveAction(action);
             }
             else
             {
 //                std::cout<<"--Coordinate--"<<coordinate.mX<<" "<<coordinate.mY<<std::endl;
 
                 view->SetPosition(MapGridCoordinateToPosition(coordinate));
-                view->UpdateAction();
+                view->UpdateMoveActions();
             }
             
         }

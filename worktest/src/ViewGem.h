@@ -12,7 +12,7 @@ public:
 		float debugLabelOffset);
 	
 	virtual void Render(King::Engine& engine) override;
-
+    virtual void UpdateMoveActions() override;
 private:
 	static const char* MapGemStateToDebugLabel(ModelGem::State state);
 	static King::Engine::Texture MapGemColorToTexture(ModelGem::Color color);
