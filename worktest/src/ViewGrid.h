@@ -21,7 +21,7 @@ public:
 	
 	Position MapGridCoordinateToPosition(Coordinate coordinate);
     Coordinate MapPositionCoordinateToGrid(Position coordinate);
-    void ApplyInteraction(Position onClick, Position onMove);
+    bool ApplyInteraction(Position onClick, Position onMove);
     
 private:
 	std::map<std::weak_ptr<ModelGem>, std::unique_ptr<ViewGem>, std::owner_less<std::weak_ptr<ModelGem>>> mViews;

@@ -30,8 +30,10 @@ void ModelGrid::Match() {
 void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
 {
     std::pair<int, int> neighbours[] = {{1,0}, {0,1}, {-1,0}, {0,-1}};
-    size_t minDistance = INT_MAX;
-    Coordinate nearestNeighbour = gemFrom;
+    size_t minDistance = fabs((int)gemFrom.mX-(int)gemTo.mX)+fabs((int)gemFrom.mY-(int)gemTo.mY);
+    Coordinate nearestNeighbour = gemTo;
+    
+    //todo unnecesary
     for (auto neighbour : neighbours)
     {
         int mx = (int)gemFrom.mX+neighbour.first;
@@ -41,7 +43,7 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
         {
             int distanceX = gemNeighbourPosition.mX-gemTo.mX;
             int distanceY = gemNeighbourPosition.mY-gemTo.mY;
-            size_t distance = fabs(distanceX+fabs(distanceY));
+            size_t distance = fabs(distanceX)+fabs(distanceY);
             if(distance<minDistance)
             {
                 minDistance=distance;
@@ -51,7 +53,9 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
     }
     
     gemTo = nearestNeighbour;
-    std::cout<<nearestNeighbour.mX<<" "<<nearestNeighbour.mY<<std::endl;
+    
+    if(!mGems.count(gemFrom) || !mGems.count(gemTo))
+        return;
     
     std::shared_ptr<ModelGem> modelGemFrom = mGems[gemFrom];
     std::shared_ptr<ModelGem> modelGemTo = mGems[gemTo];
@@ -73,6 +77,8 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
             {
                 mTransitions.insert({modelGemFrom, {gemFrom, gemTo}});
                 mTransitions.insert({modelGemTo, {gemTo, gemFrom}});
+                modelGemFrom->mState=ModelGem::State::SWAPPING;
+                modelGemTo->mState=ModelGem::State::SWAPPING;
                 found=true;
             }
         }
@@ -81,6 +87,10 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
     {
         mGems[gemTo]=modelGemTo;
         mGems[gemFrom]=modelGemFrom;
+        mTransitions.insert({modelGemFrom, {gemFrom, gemTo}});
+        mTransitions.insert({modelGemTo, {gemTo, gemFrom}});
+        mTransitions.insert({modelGemFrom, {gemTo, gemFrom}});
+        mTransitions.insert({modelGemTo, {gemFrom, gemTo}});
     }
 }
 
@@ -97,7 +107,7 @@ const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& ModelGrid::GetG
 	return mGems;
 }
 
-const std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& ModelGrid::GetTransitions() const {
+const std::multimap<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& ModelGrid::GetTransitions() const {
     return mTransitions;
 }
 

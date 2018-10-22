@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include "MoveTo.hpp"
 
 
@@ -19,7 +20,7 @@ public:
     void GenerateGemsOnTop(); //kiril
     void ClearTransitions();
 	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& GetGems() const;
-    const std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& GetTransitions() const;
+    const std::multimap<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>>& GetTransitions() const;
     
     void TryMatch(Coordinate gemFrom, Coordinate gemTo);
     
@@ -38,7 +39,7 @@ private:
 		size_t matchLength);
 	
 	std::unordered_map<Coordinate, std::shared_ptr<ModelGem>> mGems;
-    std::unordered_map<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>> mTransitions;
+    std::multimap<std::shared_ptr<ModelGem>, std::pair<Coordinate,Coordinate>> mTransitions;
 
 	size_t mWidth;
 	size_t mHeight;

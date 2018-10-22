@@ -22,6 +22,7 @@ namespace King
     public:
         enum class State {
             FINISHED,
+            PENDING,
             RUNNING,
         };
         

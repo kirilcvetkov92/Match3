@@ -36,7 +36,6 @@ void ViewGrid::UpdateViews() {
             
             if (!mViews.count(gem))
             {
-                
                 auto result = mViews.insert({
                     gem,
                     std::make_unique<ViewGem>(gem, mGemDebugLabelOffset)}
@@ -45,41 +44,42 @@ void ViewGrid::UpdateViews() {
                 AddChild(view);
             }
             
-            auto result = mViews.find(gem);
+            auto gemKeyValue = mViews.find(gem);
 
-            auto& view = result->second;
-            auto transitionIterator = transitions.find(gem);
-            
-            if (transitionIterator != transitions.end())
+            auto &gemView = gemKeyValue->second;
+           
+            auto result = transitions.equal_range(gem);
+           
+            for (auto it = result.first; it != result.second; it++)
             {
-                auto transition = transitionIterator->second;
+                
+                auto transition = it->second;
+          
                 Coordinate sourceCoordinate = transition.first;
                 Coordinate destinationCoordinate = transition.second;
-
-                view->SetPosition(MapGridCoordinateToPosition(sourceCoordinate));
-
+                
+                if(it==result.first)
+                    gemView->SetPosition(MapGridCoordinateToPosition(sourceCoordinate));
+                
                 float distance = abs(MapGridCoordinateToPosition(destinationCoordinate).mY - MapGridCoordinateToPosition(sourceCoordinate).mY)+abs(MapGridCoordinateToPosition(destinationCoordinate).mX-MapGridCoordinateToPosition(sourceCoordinate).mX);
                 float t = distance/(Settings::SPEED);
-
+                std::cout<<"time"<<t<<std::endl;
                 Position destination(MapGridCoordinateToPosition(destinationCoordinate));
-
+                
                 std::shared_ptr<MoveTo> action = std::make_shared<MoveTo>(destination, t);
-                view->RunMoveAction(action);
+                gemView->RunMoveAction(action);
             }
+        
+            if(gemView->mCurrentMoveAction || !gemView->mMoveActions.empty())
+                gemView->UpdateMoveActions();
             else
-            {
-//                std::cout<<"--Coordinate--"<<coordinate.mX<<" "<<coordinate.mY<<std::endl;
-
-                view->SetPosition(MapGridCoordinateToPosition(coordinate));
-                view->UpdateMoveActions();
-            }
-            
+                gemView->SetPosition(MapGridCoordinateToPosition(coordinate));
         }
         model->ClearTransitions();
     }
 }
 
-void ViewGrid::ApplyInteraction(Position onClick, Position onMove)
+bool ViewGrid::ApplyInteraction(Position onClick, Position onMove)
 {
     Coordinate gemOnClick = MapPositionCoordinateToGrid(onClick);
     Coordinate gemOnMove= MapPositionCoordinateToGrid(onMove);
@@ -89,8 +89,10 @@ void ViewGrid::ApplyInteraction(Position onClick, Position onMove)
         //find nearest neighbours
         if (auto model = mModel.lock()) {
             model->TryMatch(gemOnClick, gemOnMove);
+            return true;
         }
     }
+    return false;
 }
 
 Position ViewGrid::MapGridCoordinateToPosition(Coordinate coordinate) {

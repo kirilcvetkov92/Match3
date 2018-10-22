@@ -6,12 +6,10 @@
 //
 
 #include "Action.hpp"
-
 namespace King {
     Action::Action(float seconds) {
         mSeconds = seconds;
-        mBegin = steady_clock::now();
-        mState = King::Action::State::RUNNING;
+        mState = King::Action::State::PENDING;
     }
     
     Action::~Action()
@@ -20,6 +18,12 @@ namespace King {
     
     void Action::Update()
     {
+        if(mState == King::Action::State::PENDING)
+        {
+            mState = King::Action::State::RUNNING;
+            mBegin = steady_clock::now();
+        }
+        
         if(mState == King::Action::State::RUNNING)
         {
             

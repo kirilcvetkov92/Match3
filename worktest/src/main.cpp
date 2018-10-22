@@ -96,7 +96,8 @@ public:
     }
     
 	void Update() override {
-		if (mEngine.GetMouseButtonDown()) {
+        
+		if (mEngine.GetMouseButtonDown() && mGameState!=GameState::IDLE) {
 			mMouseButtonWasDown = true;
             
             if(mGameState==GameState::READY)
@@ -104,7 +105,10 @@ public:
             
             mGameState=GameState::CLICK;
             Position currentPosition(mEngine.GetMouseX(), mEngine.GetMouseY());
-            mViewGrid.ApplyInteraction(mStartClick, currentPosition);
+            if(mViewGrid.ApplyInteraction(mStartClick, currentPosition))
+            {
+                mGameState=GameState::IDLE;
+            }
             
 		}
         else if (mMouseButtonWasDown) {
