@@ -14,6 +14,10 @@ CallBack::CallBack(const std::function<void()> &func, float seconds):Action(seco
     mFunction = func;
 }
 
+CallBack::~CallBack()
+{
+ 
+}
 void CallBack::Initialize()
 {
     //todo
@@ -29,4 +33,8 @@ void CallBack::PerformAction(float period)
     //todo
 }
 
+int CallBack::GetTimeRemaining()
+{
+    return mSeconds;
+}
 
