@@ -170,7 +170,9 @@ private:
     enum class GameState {
         NEW,
         READY,
-        CLICK
+        CLICK,
+        IDLE,
+        FINISH
     };
     
     GameState mGameState;
