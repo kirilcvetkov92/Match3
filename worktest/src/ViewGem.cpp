@@ -33,6 +33,8 @@ const char* ViewGem::MapGemStateToDebugLabel(ModelGem::State state) {
 			return "s";
 		case ModelGem::State::MATCHED:
 			return "m";
+        case ModelGem::State::FALLING:
+            return "f";
 		case ModelGem::State::RESTING:
 			return " ";
 		default:
@@ -46,7 +48,7 @@ void ViewGem::UpdateMoveActions()
     if(!mCurrentMoveAction && mMoveActions.empty())
     {
         if (auto model = mModel.lock()) {
-            if(model->mState==ModelGem::State::DROPPING || model->mState==ModelGem::State::SWAPPING)
+            if(model->mState==ModelGem::State::FALLING || model->mState==ModelGem::State::SWAPPING)
             {
                 model->mState = ModelGem::State::RESTING;
             }

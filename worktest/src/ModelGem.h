@@ -16,6 +16,7 @@ public:
 	
 	enum class State {
 		DROPPING,
+        FALLING,
 		RESTING,
 		SWAPPING,
 		MATCHED

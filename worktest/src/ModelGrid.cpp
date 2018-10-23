@@ -133,7 +133,7 @@ void ModelGrid::Initialise() {
 //        }
 //    }
 //
-    GenerateGemsOnTop();
+GenerateGemsOnTop();
 }
 
 std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
@@ -155,17 +155,21 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
         auto& coordinate = iterator.first;
         auto& gem = iterator.second;
         
-        if(gem->mState == ModelGem::State::MATCHED)
+        if(gem->mState == ModelGem::State::MATCHED || !gem)
         {
             for (int i=coordinate.mY; i>0; i--)
             {
                 Coordinate currentCoordinate(coordinate.mX, i-1);
-                auto iterator = mGems.find(currentCoordinate);
-                auto &candidateDropGem = iterator->second;
-                if(candidateDropGem->mState == ModelGem::State::RESTING)
+                if(mGems.count(currentCoordinate))
                 {
-                    result.push_back(candidateDropGem);
+                    auto iterator = mGems.find(currentCoordinate);
+                    auto &candidateDropGem = iterator->second;;
+                    if(candidateDropGem->mState == ModelGem::State::RESTING)
+                    {
+                        result.push_back(candidateDropGem);
+                    }
                 }
+                else break;
             }
         }
     }
@@ -186,6 +190,7 @@ void ModelGrid::MoveDroppedGems()
 
             std::shared_ptr<ModelGem> gem = iterator->second;
             if (gem->mState == ModelGem::State::DROPPING){
+                gem->mState = ModelGem::State::FALLING;
                 for(size_t currentRow=row; currentRow<mHeight; currentRow++)
                 {
                     Coordinate dropCoordinate(column, currentRow);
@@ -194,12 +199,14 @@ void ModelGrid::MoveDroppedGems()
                     auto dropIterator = mGems.find(nextCoordinate);
                     if(dropIterator != mGems.end() || currentRow+1==mHeight)
                     {
+
                         mGems.erase(coordinate);
                         mGems.insert({dropCoordinate, gem});
-                        
+                    
                         Position dropCoordinateP(column, currentRow);
                         Position coordinateP(column,row-1);
                         
+                        //Insert to transition multimap
                         mTransitions.insert({gem, {coordinateP, dropCoordinateP}});
                         break;
                     }
@@ -264,12 +271,8 @@ void ModelGrid::GenerateGemsOnTop()
             float destinationX = (float)column;
             float destinationY = (float)row-1;
             mTransitions.insert({modelGem, {Position(sourceX, sourceY), Position(destinationX, destinationY)}});
-            modelGem->mState=ModelGem::State::DROPPING;
         }
     }
-    
-    int a = 2;
-    int b = 3;
 }
 
 
@@ -333,7 +336,7 @@ bool ModelGrid::IsCoordinatePartOfMatch(
 				Coordinate(position, coordinate.mY) :
 				Coordinate(coordinate.mX, position));
 			if ((neighbor != gems.end()) &&
-				(neighbor->second->mColor == color)) {
+                (neighbor->second->mColor == color && neighbor->second->mState==ModelGem::State::RESTING)) {
 				run++;
 				if (run >= matchLength) {
 					return true;
