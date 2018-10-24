@@ -49,14 +49,32 @@ public:
                                                  Settings::MODEL_GRID_HEIGHT,
                                                  Settings::MODEL_GRID_MATCH_LENGTH);
         mViewGrid.SetModel(mModelGrid);
-        
-        
         mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
 		mEngine.Start(*this);
-        
-
 	}
     
+    
+    void onGameStart()
+    {
+//        std::unique_ptr<ViewText> mTextInfo = std::make_unique<ViewText>();
+//        mCounter->SetPosition(Position(150,350));
+//        mRoot->AddChild(mCounter.get());
+//        SetCounter(5);
+//        mTime = seconds;
+//        auto callBackEnd = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnGameEnd, this), seconds);
+//        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
+//        mCallBacks.insert(callBackEnd);
+//        mCallBacks.insert(callBackTime);
+    }
+    
+//    void SetCounter(int seconds)
+//    {
+//        std::ostringstream os;
+//        os<<seconds ;
+//        mCounter->SetTextString(os.str());
+//        mCounter->SetTextItem(King::Engine::TEXT_ITEM_03);
+//    }
+//    
     void InitRoot()
     {
         mRoot = std::make_unique<View>();
@@ -105,14 +123,18 @@ public:
             }
             else
                 callback->Update();
-     
         }
        
+        if(mGameStateMachine.GetCurrentState()==StateMachine::State::END)
+        {
+            mCallBacks.clear();
+            return;
+        }
+        
         for(auto callback : callbacksForRemoval)
         {
             mCallBacks.erase(callback);
         }
-
     }
     
 	void Update() override {
@@ -144,19 +166,13 @@ public:
         StateMachine::State currentState = mGameStateMachine.GetCurrentState();
         Position currentClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
         
-        Coordinate a = mViewGrid.MapPositionCoordinateToGrid(currentClick);
-        Coordinate b = mViewGrid.MapPositionCoordinateToGrid(mStartClick);
+        Coordinate currentCoordinate = mViewGrid.MapPositionCoordinateToGrid(currentClick);
+        Coordinate startCoordinate = mViewGrid.MapPositionCoordinateToGrid(mStartClick);
         
         switch (currentState)
         {
             case StateMachine::State::TOUCH_BEGIN1:
                 mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
-                break;
-            case StateMachine::State::TOUCH_END1:
-                break;
-            case StateMachine::State::IDLE:
-                break;
-            case StateMachine::State::TOUCH_BEGIN2:
                 break;
             case StateMachine::State::SWIPE:
                 onSwipe();
@@ -166,17 +182,13 @@ public:
                 mGameStateMachine.SendEvent(StateMachine::Event::NONE);
                 break;
             case StateMachine::State::SWIPE_CLICK:
-                if(abs((int)a.mX -(int)b.mX)+abs((int)a.mY-(int)b.mY)==1)
-                {
-                    onSwipe();
-                }
-                else
-                {
-                    mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
-                    mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
-                    Coordinate StartClick = mViewGrid.MapPositionCoordinateToGrid(mStartClick);
-                    std::cout<<"StartClick:"<<StartClick.mX<<" "<<StartClick.mY<<std::endl;
-                }
+                OnSwipeWithClick(currentCoordinate, startCoordinate);
+                break;
+            case StateMachine::State::TOUCH_END1:
+                break;
+            case StateMachine::State::IDLE:
+                break;
+            case StateMachine::State::TOUCH_BEGIN2:
                 break;
             default:
                 mModelGrid->Match();
@@ -190,7 +202,10 @@ public:
     
     void OnGameEnd()
     {
- 
+        mViewGrid.RemoveAllChildren();
+        
+        mViewGrid = ViewGrid(Settings::VIEW_GRID_SPACING, Settings::VIEW_GEM_DEBUG_LABEL_OFFSET);
+        mGameStateMachine.SendEvent(StateMachine::Event::EXIT);
     }
     
     void onSwipe()
@@ -209,10 +224,25 @@ public:
 
     }
     
+    void OnSwipeWithClick(Coordinate &start, Coordinate &current)
+    {
+        int distance = abs((int)start.mX-(int)current.mX)+abs((int)start.mY-(int)current.mY);
+        if(distance==1)
+        {
+            onSwipe();
+        }
+        else
+        {
+            mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
+            mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+        }
+    }
+    
     void OnSecondElapsed()
     {
         mTime = mTime-1;
         SetCounter(mTime);
+        
         auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
         mCallBacks.insert(callBackTime);
     }
@@ -241,7 +271,7 @@ private:
     StateMachine mGameStateMachine;
     
 	bool mMouseButtonWasDown;
-    int mTime=60;
+    int mTime=0;
     
     Position mStartClick;
     Position mCurrentClick;
