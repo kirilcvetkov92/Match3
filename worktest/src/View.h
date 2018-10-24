@@ -21,7 +21,8 @@ public:
 	void RemoveChild(View* view);
 
 	void RemoveAllChildren();
-    
+    void setVisible(bool visible);
+
     Position ConvertToViewSpace(Position globalPosition);
     Position ConvertToWorldSpace(Position viewPosition);
 
@@ -34,7 +35,7 @@ protected:
 
 	Position mPosition;
 	float mRotation;
-    
+    bool mVisibility;
 private:
 	std::vector<View*> mChildren;
 };

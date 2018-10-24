@@ -31,81 +31,109 @@ public:
 		Settings::VIEW_GRID_SPACING,
 		Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
     , mCallBacks()
+    , mGameStateMachine()
 	, mMouseButtonWasDown(true)
     , mStartClick(INT_MIN,INT_MIN)
     , mCurrentClick(INT_MIN,INT_MIN)
-    , mGameStateMachine()
-    , mGameState(Game::GameState::NEW){
+    {
+        InitRoot();
+        
 	}
 	
 	void Start() {
 		mViewGrid.SetPosition(350.0f, 100.0f);
-        InitRoot();
-        SetBackground();
-        InitCounter(Settings::COUNTER);
+        SetNewGame();
+        InitCounter(Settings::START_COUNTER, GAME_CALLBACK(Game::GameReady, this),  getGameString());
         
         mModelGrid = std::make_shared<ModelGrid>(
                                                  Settings::MODEL_GRID_WIDTH,
                                                  Settings::MODEL_GRID_HEIGHT,
                                                  Settings::MODEL_GRID_MATCH_LENGTH);
         mViewGrid.SetModel(mModelGrid);
-        mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
+        
+    
+        
+        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
+        mCallBacks.insert(callBackTime);
 		mEngine.Start(*this);
 	}
     
-    
-    void onGameStart()
-    {
-//        std::unique_ptr<ViewText> mTextInfo = std::make_unique<ViewText>();
-//        mCounter->SetPosition(Position(150,350));
-//        mRoot->AddChild(mCounter.get());
-//        SetCounter(5);
-//        mTime = seconds;
-//        auto callBackEnd = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnGameEnd, this), seconds);
-//        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
-//        mCallBacks.insert(callBackEnd);
-//        mCallBacks.insert(callBackTime);
-    }
-    
-//    void SetCounter(int seconds)
-//    {
-//        std::ostringstream os;
-//        os<<seconds ;
-//        mCounter->SetTextString(os.str());
-//        mCounter->SetTextItem(King::Engine::TEXT_ITEM_03);
-//    }
-//    
     void InitRoot()
     {
         mRoot = std::make_unique<View>();
-    }
-    
-    void SetBackground()
-    {
+        
+        // add background
         mBackground = std::make_unique<ViewSprite>();
         mBackground->SetTexture(King::Engine::Texture::TEXTURE_BACKGROUND);
         mBackground->SetPosition(Position(400.0f,300.0f));
         mRoot->AddChild(mBackground.get());
-        mRoot->AddChild(&mViewGrid);
-    }
-	
-    void InitCounter(int seconds)
-    {
-        mCounter = std::make_unique<ViewText>();
-        mCounter->SetPosition(Position(150,350));
-        mRoot->AddChild(mCounter.get());
-        SetCounter(seconds);
-        mTime = seconds;
-        auto callBackEnd = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnGameEnd, this), seconds);
-        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
-        mCallBacks.insert(callBackEnd);
-        mCallBacks.insert(callBackTime);
+        
+        //add label
+        mInfoLabel = std::make_unique<ViewText>();
+        mInfoLabel->SetPosition(Position(500,250));
+        mRoot->AddChild(mInfoLabel.get());
     }
     
-    void SetCounter(int seconds)
+    void GameReady()
+    {
+        mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
+        InitCounter(Settings::GAME_COUNTER, GAME_CALLBACK(Game::OnGameEnd, this) ,getGameString());
+    }
+    
+    void SetNewGame()
+    {
+        mRoot->AddChild(&mViewGrid);
+        
+        //clear all callbacks
+        mCallBacks.clear();
+        
+        //send resume event
+        mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
+        
+        //clear all informations
+        ClearInfo();
+    }
+    
+    void RestartGame()
+    {
+        mViewGrid = ViewGrid(Settings::VIEW_GRID_SPACING, Settings::VIEW_GEM_DEBUG_LABEL_OFFSET);
+        Start();
+    }
+
+    
+	
+    void WriteInfo(const std::string &message)
+    {
+        mInfoLabel->setVisible(true);
+        mInfoLabel->SetTextString(message);
+        mInfoLabel->SetTextItem(King::Engine::TEXT_ITEM_03);
+    }
+    
+    void ClearInfo()
+    {
+        mInfoLabel->setVisible(false);
+    }
+    
+    void InitCounter(int seconds, const std::function<void()> &func, const std::string &prefix)
+    {
+        mRoot->RemoveChild(mCounter.get());
+        
+        mCounter = std::make_unique<ViewText>();
+        mRoot->AddChild(mCounter.get());
+        mCounter->SetPosition(Position(150,350));
+        
+        mTime = seconds;
+        
+        auto callBackEnd = std::make_shared<CallBack>(func, seconds);
+        mCallBacks.insert(callBackEnd);
+        
+        SetCounter(seconds, prefix);
+    }
+    
+    void SetCounter(int seconds, const std::string &prefix)
     {
         std::ostringstream os;
-        os<<seconds ;
+        os<<prefix<<" "<<seconds ;
         mCounter->SetTextString(os.str());
         mCounter->SetTextItem(King::Engine::TEXT_ITEM_03);
     }
@@ -125,12 +153,6 @@ public:
                 callback->Update();
         }
        
-        if(mGameStateMachine.GetCurrentState()==StateMachine::State::END)
-        {
-            mCallBacks.clear();
-            return;
-        }
-        
         for(auto callback : callbacksForRemoval)
         {
             mCallBacks.erase(callback);
@@ -184,12 +206,6 @@ public:
             case StateMachine::State::SWIPE_CLICK:
                 OnSwipeWithClick(currentCoordinate, startCoordinate);
                 break;
-            case StateMachine::State::TOUCH_END1:
-                break;
-            case StateMachine::State::IDLE:
-                break;
-            case StateMachine::State::TOUCH_BEGIN2:
-                break;
             default:
                 mModelGrid->Match();
                 mModelGrid->Drop();
@@ -204,8 +220,13 @@ public:
     {
         mViewGrid.RemoveAllChildren();
         
-        mViewGrid = ViewGrid(Settings::VIEW_GRID_SPACING, Settings::VIEW_GEM_DEBUG_LABEL_OFFSET);
         mGameStateMachine.SendEvent(StateMachine::Event::EXIT);
+
+        WriteInfo("GAME OVER");
+        mCounter->setVisible(false);
+        
+        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::RestartGame, this), 3);
+        mCallBacks.insert(callBackTime);
     }
     
     void onSwipe()
@@ -241,7 +262,7 @@ public:
     void OnSecondElapsed()
     {
         mTime = mTime-1;
-        SetCounter(mTime);
+        SetCounter(mTime,getGameString());
         
         auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
         mCallBacks.insert(callBackTime);
@@ -250,12 +271,26 @@ public:
     bool isClickPaused(){
         return mGameStateMachine.GetCurrentState()==StateMachine::State::IDLE;
     }
+    
     void PauseClick(){
         mGameStateMachine.SendEvent(StateMachine::Event::PAUSE);
     }
+    
     void ResumeClick()
     {
         mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
+    }
+    
+    std::string getGameString()
+    {
+        StateMachine::State state = mGameStateMachine.GetCurrentState();
+        if (state == StateMachine::State::NEW)
+        {
+            return "READY ";
+        }
+        else{
+            return "PLAY ";
+        }
     }
     
 private:
@@ -266,6 +301,7 @@ private:
 	ViewGrid mViewGrid;
     std::unique_ptr<ViewSprite> mBackground;
     std::unique_ptr<ViewText> mCounter;
+    std::unique_ptr<ViewText> mInfoLabel;
     std::unique_ptr<View> mRoot;
     std::set<std::shared_ptr<CallBack>> mCallBacks;
     StateMachine mGameStateMachine;
@@ -276,15 +312,6 @@ private:
     Position mStartClick;
     Position mCurrentClick;
     
-    enum class GameState {
-        NEW,
-        READY,
-        CLICK,
-        IDLE,
-        FINISH
-    };
-    
-    GameState mGameState;
 };
 
 int main(int argc, char *argv[]) {

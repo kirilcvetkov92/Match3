@@ -3,10 +3,12 @@
 #include <king/Updater.h>
 #include <algorithm>
 #include <string>
+#include <iostream>
 
 View::View()
 : mPosition(0.0, 0.0)
-, mRotation(0.0f)
+, mRotation(0.0f),
+mVisibility(true)
 {}
 
 View::~View()
@@ -37,7 +39,10 @@ void View::AddChild(View* view) {
 }
 
 void View::RemoveChild(View* view) {
+    std::cout<<view;
+
 	auto removal = std::remove(mChildren.begin(), mChildren.end(), view);
+ 
 	mChildren.erase(removal, mChildren.end());
 }
 
@@ -77,10 +82,18 @@ void View::UpdateMoveActions()
     }
 }
 
+void View::setVisible(bool visible)
+{
+    mVisibility = visible;
+}
+
 void View::Render(King::Engine& engine) {
-	for(auto* child : mChildren) {
-		child->Render(engine);
-	}
+    for(auto* child : mChildren) {
+        if(child->mVisibility)
+        {
+            child->Render(engine);
+        }
+    }
 }
 
 Position View::ConvertToViewSpace(Position globalPosition)

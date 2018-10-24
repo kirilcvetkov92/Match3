@@ -26,6 +26,8 @@ StateMachine::State& StateMachine::GetCurrentState()
     return mCurrentState;
 }
 
+
+
 void StateMachine::SetCurrentState(StateMachine::State state)
 {
     mCurrentState = state;
@@ -61,7 +63,7 @@ void StateMachine::SetCurrentState(StateMachine::State state)
 
             break;
         case State::END:
-            mCurrentStateFunction = GAME_CALLBACK_1(StateMachine::OnNew, this);
+            mCurrentStateFunction = GAME_CALLBACK_1(StateMachine::OnEnd, this);
             cout<<"State : END"<<endl;;
 
             break;
@@ -163,7 +165,7 @@ void StateMachine::OnSwipe(Event event)
     switch(event)
     {
         case StateMachine::Event::TOUCH_END:
-            SetCurrentState(StateMachine::State::READY);
+            SetCurrentState(StateMachine::State::TOUCH_END1);
             break;
         case StateMachine::Event::PAUSE:
             SetCurrentState(StateMachine::State::IDLE);
@@ -217,7 +219,7 @@ void StateMachine::OnEnd(Event event)
 {
     switch(event)
     {
-        case StateMachine::State::NEW:
+        case StateMachine::Event::RESUME:
             SetCurrentState(StateMachine::State::NEW);
             break;
         default:

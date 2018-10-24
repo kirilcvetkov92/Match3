@@ -29,6 +29,10 @@ class StateMachine
         END,
     };
     
+    /*
+     Note(For Future) : Adding TouchMove event simplify and reduce swipe states
+    */
+    
     enum Event
     {
         NONE,
