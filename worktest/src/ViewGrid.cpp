@@ -23,7 +23,7 @@ void ViewGrid::UpdateViews() {
         }
     }
     
-    // add new gems according to new coordinate
+    // update gems viws
     if (auto model = mModel.lock()) {
         
         auto &transitions = model->GetTransitions();

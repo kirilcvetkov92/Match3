@@ -10,7 +10,7 @@ public:
 	ViewGem(
 		const std::weak_ptr<ModelGem> model,
 		float debugLabelOffset);
-	
+    ~ViewGem();
 	virtual void Render(King::Engine& engine) override;
     virtual void UpdateMoveActions() override;
 private:

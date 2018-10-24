@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "Action.hpp"
 
-class MoveTo : public King::Action {
+class MoveTo : public Action {
     typedef Position Step;
     
     public :

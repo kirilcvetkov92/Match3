@@ -18,6 +18,7 @@ class StateMachine
     enum State
     {
         NEW,
+        RESTART,
         READY,
         TOUCH_BEGIN1,
         TOUCH_END1,
@@ -64,6 +65,8 @@ class StateMachine
         void OnSwipeClick(Event event);
         void OnIdle(Event event);
         void OnEnd(Event event);
+        void OnRestart(Event event);
+
     void OnCorrectStartPosition(Event event);
 
 };

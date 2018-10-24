@@ -12,6 +12,11 @@ ViewGem::ViewGem(
 	SetTexture(MapGemColorToTexture(mModel.lock()->mColor));
 }
 
+ViewGem::~ViewGem()
+{
+    //cout<<"Destroyed ViewGem"<<endl;
+}
+
 void ViewGem::Render(King::Engine& engine) {
 	ViewSprite::Render(engine);
 	

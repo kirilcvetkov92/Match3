@@ -39,9 +39,21 @@ public:
         InitRoot();
         
 	}
+    
+    ~Game()
+    {
+        mRoot->RemoveAllChildren();
+    }
 	
 	void Start() {
-		mViewGrid.SetPosition(350.0f, 100.0f);
+        OnStart();
+		mEngine.Start(*this);
+	}
+    
+    void OnStart()
+    {
+        mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
+        mViewGrid.SetPosition(350.0f, 100.0f);
         SetNewGame();
         InitCounter(Settings::START_COUNTER, GAME_CALLBACK(Game::GameReady, this),  getGameString());
         
@@ -51,13 +63,11 @@ public:
                                                  Settings::MODEL_GRID_MATCH_LENGTH);
         mViewGrid.SetModel(mModelGrid);
         
-    
+        
         
         auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
         mCallBacks.insert(callBackTime);
-		mEngine.Start(*this);
-	}
-    
+    }
     void InitRoot()
     {
         mRoot = std::make_unique<View>();
@@ -72,12 +82,11 @@ public:
         mInfoLabel = std::make_unique<ViewText>();
         mInfoLabel->SetPosition(Position(500,250));
         mRoot->AddChild(mInfoLabel.get());
-    }
-    
-    void GameReady()
-    {
-        mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
-        InitCounter(Settings::GAME_COUNTER, GAME_CALLBACK(Game::OnGameEnd, this) ,getGameString());
+        
+        //set counter
+        mCounter = std::make_unique<ViewText>();
+        mRoot->AddChild(mCounter.get());
+        mCounter->SetPosition(Position(150,350));
     }
     
     void SetNewGame()
@@ -87,8 +96,6 @@ public:
         //clear all callbacks
         mCallBacks.clear();
         
-        //send resume event
-        mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
         
         //clear all informations
         ClearInfo();
@@ -97,11 +104,16 @@ public:
     void RestartGame()
     {
         mViewGrid = ViewGrid(Settings::VIEW_GRID_SPACING, Settings::VIEW_GEM_DEBUG_LABEL_OFFSET);
-        Start();
+        mGameStateMachine.SendEvent(StateMachine::Event::NONE);
+    }
+    
+    void GameReady()
+    {
+        mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
+        InitCounter(Settings::GAME_COUNTER, GAME_CALLBACK(Game::OnGameEnd, this) ,getGameString());
     }
 
-    
-	
+
     void WriteInfo(const std::string &message)
     {
         mInfoLabel->setVisible(true);
@@ -116,16 +128,10 @@ public:
     
     void InitCounter(int seconds, const std::function<void()> &func, const std::string &prefix)
     {
-        mRoot->RemoveChild(mCounter.get());
-        
-        mCounter = std::make_unique<ViewText>();
-        mRoot->AddChild(mCounter.get());
-        mCounter->SetPosition(Position(150,350));
-        
         mTime = seconds;
-        
         auto callBackEnd = std::make_shared<CallBack>(func, seconds);
         mCallBacks.insert(callBackEnd);
+        mCounter->setVisible(true);
         
         SetCounter(seconds, prefix);
     }
@@ -145,7 +151,7 @@ public:
         
         for(auto callback : mCallBacks)
         {
-            if (callback->mState == King::Action::State::FINISHED)
+            if (callback->mState == Action::State::FINISHED)
             {
                 callbacksForRemoval.push_back(callback);
             }
@@ -206,6 +212,10 @@ public:
             case StateMachine::State::SWIPE_CLICK:
                 OnSwipeWithClick(currentCoordinate, startCoordinate);
                 break;
+            case StateMachine::State::RESTART:
+                OnStart();
+                break;
+
             default:
                 mModelGrid->Match();
                 mModelGrid->Drop();
@@ -218,8 +228,7 @@ public:
     
     void OnGameEnd()
     {
-        mViewGrid.RemoveAllChildren();
-        
+        mRoot->RemoveChild(&mViewGrid);
         mGameStateMachine.SendEvent(StateMachine::Event::EXIT);
 
         WriteInfo("GAME OVER");
@@ -299,11 +308,13 @@ private:
 	std::shared_ptr<ModelGrid> mModelGrid;
 	
 	ViewGrid mViewGrid;
-    std::unique_ptr<ViewSprite> mBackground;
+    std::unique_ptr<ViewSprite> mBackground; 
     std::unique_ptr<ViewText> mCounter;
     std::unique_ptr<ViewText> mInfoLabel;
     std::unique_ptr<View> mRoot;
+    
     std::set<std::shared_ptr<CallBack>> mCallBacks;
+    
     StateMachine mGameStateMachine;
     
 	bool mMouseButtonWasDown;

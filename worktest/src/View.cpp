@@ -39,10 +39,7 @@ void View::AddChild(View* view) {
 }
 
 void View::RemoveChild(View* view) {
-    std::cout<<view;
-
 	auto removal = std::remove(mChildren.begin(), mChildren.end(), view);
- 
 	mChildren.erase(removal, mChildren.end());
 }
 
@@ -74,7 +71,7 @@ void View::UpdateMoveActions()
     {
         mCurrentMoveAction->Update();
         mPosition = mCurrentMoveAction->mCurrentPosition;
-        if(mCurrentMoveAction->mState==King::Action::State::FINISHED)
+        if(mCurrentMoveAction->mState == Action::State::FINISHED)
         {
             mPosition = mCurrentMoveAction->mDestination;
             mCurrentMoveAction = nullptr;
