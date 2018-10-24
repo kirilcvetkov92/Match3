@@ -11,12 +11,15 @@
 #include "CallBack.hpp"
 #include <set>
 #include <sstream>
+#include "StateMachine.hpp"
+
 
 #ifdef __APPLE__
 #define ASSETS_PATH "./../bin/assets"
 #else
 #define ASSETS_PATH "./assets"
 #endif
+
 
 class Game : public King::Updater {
     typedef Position ClickPosition;
@@ -29,7 +32,9 @@ public:
 		Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
     , mCallBacks()
 	, mMouseButtonWasDown(true)
-    , mStartClick(-1,-1)
+    , mStartClick(INT_MIN,INT_MIN)
+    , mCurrentClick(INT_MIN,INT_MIN)
+    , mGameStateMachine()
     , mGameState(Game::GameState::NEW){
 	}
 	
@@ -38,7 +43,18 @@ public:
         InitRoot();
         SetBackground();
         InitCounter(Settings::COUNTER);
+        
+        mModelGrid = std::make_shared<ModelGrid>(
+                                                 Settings::MODEL_GRID_WIDTH,
+                                                 Settings::MODEL_GRID_HEIGHT,
+                                                 Settings::MODEL_GRID_MATCH_LENGTH);
+        mViewGrid.SetModel(mModelGrid);
+        
+        
+        mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
 		mEngine.Start(*this);
+        
+
 	}
     
     void InitRoot()
@@ -101,61 +117,96 @@ public:
     
 	void Update() override {
         
-		if (mEngine.GetMouseButtonDown() && !isClickPaused()) {
+		if (mEngine.GetMouseButtonDown()) {
 			mMouseButtonWasDown = true;
+            Position newClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
             
-            if(mGameState==GameState::READY)
-                mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
-            
-            mGameState=GameState::CLICK;
-            Position currentPosition(mEngine.GetMouseX(), mEngine.GetMouseY());
-            
-            if(mViewGrid.ApplyInteraction(mStartClick, currentPosition))
+            if(!(mCurrentClick==newClick))
             {
-                PauseClick();
-                auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::ResumeClick, this), 0.5);
-                mCallBacks.insert(callBackTime);
+                mCurrentClick = newClick;
+                mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
             }
-            
 		}
         else if (mMouseButtonWasDown) {
             mMouseButtonWasDown = false;
-            if (mGameState==Game::GameState::NEW)
-            {
-                mGameState = Game::GameState::READY;
-                mModelGrid = std::make_shared<ModelGrid>(
-                    Settings::MODEL_GRID_WIDTH,
-                    Settings::MODEL_GRID_HEIGHT,
-                    Settings::MODEL_GRID_MATCH_LENGTH);
-                mViewGrid.SetModel(mModelGrid);
-
-            }
+            mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_END);
 		}
         
-        if (!mEngine.GetMouseButtonDown())
-        {
-            if (mGameState==GameState::CLICK)
-            {
-                mGameState = GameState::READY;
-            }
-        }
-        if(mGameState == GameState::READY)
-        {
-            mModelGrid->Match();
-            mModelGrid->Drop();
-            mModelGrid->RemoveMatchedGems();
-            mModelGrid->MoveDroppedGems();
-            mModelGrid->GenerateGemsOnTop();
-        }
+        makeStateActions();
         mViewGrid.UpdateViews();
         UpdateCallBacks();
 
 		mRoot->Render(mEngine);
 	}
 	
+    void makeStateActions()
+    {
+        StateMachine::State currentState = mGameStateMachine.GetCurrentState();
+        Position currentClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+        
+        Coordinate a = mViewGrid.MapPositionCoordinateToGrid(currentClick);
+        Coordinate b = mViewGrid.MapPositionCoordinateToGrid(mStartClick);
+        
+        switch (currentState)
+        {
+            case StateMachine::State::TOUCH_BEGIN1:
+                mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+                break;
+            case StateMachine::State::TOUCH_END1:
+                break;
+            case StateMachine::State::IDLE:
+                break;
+            case StateMachine::State::TOUCH_BEGIN2:
+                break;
+            case StateMachine::State::SWIPE:
+                onSwipe();
+                break;
+            case StateMachine::State::CORRECT_START_POSITION:
+                mStartClick = mCurrentClick;
+                mGameStateMachine.SendEvent(StateMachine::Event::NONE);
+                break;
+            case StateMachine::State::SWIPE_CLICK:
+                if(abs((int)a.mX -(int)b.mX)+abs((int)a.mY-(int)b.mY)==1)
+                {
+                    onSwipe();
+                }
+                else
+                {
+                    mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
+                    mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+                    Coordinate StartClick = mViewGrid.MapPositionCoordinateToGrid(mStartClick);
+                    std::cout<<"StartClick:"<<StartClick.mX<<" "<<StartClick.mY<<std::endl;
+                }
+                break;
+            default:
+                mModelGrid->Match();
+                mModelGrid->Drop();
+                mModelGrid->RemoveMatchedGems();
+                mModelGrid->MoveDroppedGems();
+                mModelGrid->GenerateGemsOnTop();
+                break;
+        }
+    }
+    
     void OnGameEnd()
     {
-        //todo
+ 
+    }
+    
+    void onSwipe()
+    {
+        Position currentPosition = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+        if(mViewGrid.ApplyInteraction(mStartClick, currentPosition))
+        {
+            PauseClick();
+            auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::ResumeClick, this), 0.5);
+            mCallBacks.insert(callBackTime);
+        }
+        else{
+            mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
+            mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
+        }
+
     }
     
     void OnSecondElapsed()
@@ -164,18 +215,17 @@ public:
         SetCounter(mTime);
         auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
         mCallBacks.insert(callBackTime);
-
     }
     
     bool isClickPaused(){
-        return mGameState == GameState::IDLE;
+        return mGameStateMachine.GetCurrentState()==StateMachine::State::IDLE;
     }
     void PauseClick(){
-        mGameState = GameState::IDLE;
+        mGameStateMachine.SendEvent(StateMachine::Event::PAUSE);
     }
     void ResumeClick()
     {
-        mGameState = GameState::READY;
+        mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
     }
     
 private:
@@ -188,10 +238,13 @@ private:
     std::unique_ptr<ViewText> mCounter;
     std::unique_ptr<View> mRoot;
     std::set<std::shared_ptr<CallBack>> mCallBacks;
+    StateMachine mGameStateMachine;
     
 	bool mMouseButtonWasDown;
     int mTime=60;
+    
     Position mStartClick;
+    Position mCurrentClick;
     
     enum class GameState {
         NEW,
