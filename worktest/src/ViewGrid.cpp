@@ -14,6 +14,12 @@ void ViewGrid::SetModel(std::weak_ptr<ModelGrid> model) {
 
 void ViewGrid::UpdateViews() {
     //remove erased gems
+    RemoveGems();
+    UpdateGemViews();
+}
+
+void ViewGrid::RemoveGems()
+{
     for (auto iterator = mViews.begin(); iterator != mViews.end();) {
         if (iterator->first.expired()) {
             RemoveChild(iterator->second.get());
@@ -22,59 +28,78 @@ void ViewGrid::UpdateViews() {
             iterator++;
         }
     }
-    
-    // update gems viws
-    if (auto model = mModel.lock()) {
-        
-        auto &transitions = model->GetTransitions();
+}
 
+void ViewGrid::UpdateGemViews()
+{
+    if (auto model = mModel.lock()) {
+    
         const auto& gems = model->GetGems();
         for (auto iterator : gems) {
             
-            auto& coordinate = iterator.first;
-            auto& gem = iterator.second;
+            auto coordinate = iterator.first;
+            auto &gemModel = iterator.second;
             
-            if (!mViews.count(gem))
+            if (!mViews.count(gemModel))
             {
-                auto result = mViews.insert({
-                    gem,
-                    std::make_unique<ViewGem>(gem, mGemDebugLabelOffset)}
-                );
-                auto view = result.first->second.get();
-                AddChild(view);
+                CreateNewGem(gemModel);
             }
+            //update all gem transitions
+            UpdateGemTransition(coordinate, gemModel);
             
-            auto gemKeyValue = mViews.find(gem);
-
-            auto &gemView = gemKeyValue->second;
-           
-            auto result = transitions.equal_range(gem);
-           
-            for (auto it = result.first; it != result.second; it++)
-            {
-                
-                auto transition = it->second;
-          
-                Position sourceCoordinateS = transition.first;
-                Position destinationCoordinateS = transition.second;
-                
-                if(it==result.first)
-                    gemView->SetPosition(MapGridPositionToGlobalPosition(sourceCoordinateS));
-                
-                float distance = abs(MapGridPositionToGlobalPosition(destinationCoordinateS).mY - MapGridPositionToGlobalPosition(sourceCoordinateS).mY)+abs(MapGridPositionToGlobalPosition(destinationCoordinateS).mX-MapGridPositionToGlobalPosition(sourceCoordinateS).mX);
-                float t = distance/(Settings::SPEED);
-                Position destination(MapGridPositionToGlobalPosition(destinationCoordinateS));
-                
-                std::shared_ptr<MoveTo> action = std::make_shared<MoveTo>(destination, t);
-                gemView->RunMoveAction(action);
-            }
-        
-            if(gemView->mCurrentMoveAction || !gemView->mMoveActions.empty())
-                gemView->UpdateMoveActions();
-            else
-                gemView->SetPosition(MapGridCoordinateToPosition(coordinate));
         }
+        //clear all gem transitions from model
         model->ClearTransitions();
+    }
+}
+
+void ViewGrid::CreateNewGem(std::shared_ptr<ModelGem> &gem)
+{
+    auto result = mViews.insert({
+        gem,
+        std::make_unique<ViewGem>(gem, mGemDebugLabelOffset)}
+                                );
+    
+    
+    auto view = result.first->second.get();
+    AddChild(view);
+}
+
+void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<ModelGem> &gemModel)
+{
+
+    if (auto model = mModel.lock()) {
+        auto &transitions = model->GetTransitions();
+        auto &gemView = mViews.find(gemModel)->second;
+        
+        //get all gem transitions from the multimap
+        auto allGemTransitions = transitions.equal_range(gemModel);
+        
+        for (auto it = allGemTransitions.first; it != allGemTransitions.second; it++)
+        {
+            
+            auto transition = it->second;
+            
+            Position sourceCoordinate = transition.first;
+            Position destinationCoordinate = transition.second;
+            
+            // if it's the first gem transition, set the initial position
+            if(it==allGemTransitions.first)
+                gemView->SetPosition(MapGridPositionToGlobalPosition(sourceCoordinate));
+            
+            float distance = abs(MapGridPositionToGlobalPosition(destinationCoordinate).mY - MapGridPositionToGlobalPosition(sourceCoordinate).mY)+abs(MapGridPositionToGlobalPosition(destinationCoordinate).mX-MapGridPositionToGlobalPosition(sourceCoordinate).mX);
+            float time = distance/(Settings::SPEED);
+            
+            Position destination(MapGridPositionToGlobalPosition(destinationCoordinate));
+            
+            std::shared_ptr<MoveTo> action = std::make_shared<MoveTo>(destination, time);
+            gemView->RunMoveAction(action);
+        }
+        
+        if(gemView->mCurrentMoveAction || !gemView->mMoveActions.empty())
+            gemView->UpdateMoveActions();
+        else
+            gemView->SetPosition(MapGridCoordinateToPosition(coordinate));
     }
 }
 
