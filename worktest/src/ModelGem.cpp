@@ -49,24 +49,4 @@ ModelGem::Color ModelGem::GetRandomColor(std::vector<ModelGem::Color> restricted
 
 }
 
-void ModelGem::toString()
-{
-    if (mColor==Color::BLUE)
-    {
-        std::cout<<"BLUE";
-    }
-    else if (mColor == Color::GREEN)
-    {
-        std::cout<<"Green";
-    }
-    else if (mColor==Color::RED)
-    {
-        std::cout<<"Red";
-    }
-    else{
-        std::cout<<"Yellow";
-    }
-    
-}
-
 

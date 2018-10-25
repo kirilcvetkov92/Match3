@@ -40,12 +40,14 @@ void ViewGrid::UpdateGemViews()
             auto coordinate = iterator.first;
             auto &gemModel = iterator.second;
             
+            bool c =false;
             if (!mViews.count(gemModel))
             {
                 CreateNewGem(gemModel);
+                c=true;
             }
             //update all gem transitions
-            UpdateGemTransition(coordinate, gemModel);
+            UpdateGemTransition(coordinate, gemModel,c);
             
         }
         //clear all gem transitions from model
@@ -65,7 +67,7 @@ void ViewGrid::CreateNewGem(std::shared_ptr<ModelGem> &gem)
     AddChild(view);
 }
 
-void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<ModelGem> &gemModel)
+void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<ModelGem> &gemModel, bool c)
 {
 
     if (auto model = mModel.lock()) {
@@ -84,10 +86,11 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
             Position destinationCoordinate = transition.second;
             
             // if it's the first gem transition, set the initial position
-            if(it==allGemTransitions.first)
+            if(it==allGemTransitions.first && c)
                 gemView->SetPosition(MapGridPositionToGlobalPosition(sourceCoordinate));
             
             float distance = abs(MapGridPositionToGlobalPosition(destinationCoordinate).mY - MapGridPositionToGlobalPosition(sourceCoordinate).mY)+abs(MapGridPositionToGlobalPosition(destinationCoordinate).mX-MapGridPositionToGlobalPosition(sourceCoordinate).mX);
+            //loat speedUp = fmax(1,pow(distance/100.0f, 0.2));
             float time = distance/(Settings::SPEED);
             
             Position destination(MapGridPositionToGlobalPosition(destinationCoordinate));
@@ -99,7 +102,22 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
         if(gemView->mCurrentMoveAction || !gemView->mMoveActions.empty())
             gemView->UpdateMoveActions();
         else
+        {
             gemView->SetPosition(MapGridCoordinateToPosition(coordinate));
+            auto &roof = model->GetRoof();
+            Position cToP = Position(coordinate.mX, coordinate.mY);
+            
+          
+            if(roof.count(cToP))
+            {
+
+                auto position = roof.find(cToP);
+                Position t = position->second;
+                roof.erase(t);
+                roof.erase(cToP);
+
+            }
+        }
     }
 }
 

@@ -26,9 +26,7 @@ public:
 	
 	State mState;
 	Color mColor;
-
+    
 	static Color GetRandomColor();
     static Color GetRandomColor(std::vector<Color> restrictedColors);
-
-    void toString();
 };

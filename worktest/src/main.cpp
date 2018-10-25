@@ -45,29 +45,6 @@ public:
         mRoot->RemoveAllChildren();
     }
 	
-	void Start() {
-        OnStart();
-		mEngine.Start(*this);
-	}
-    
-    void OnStart()
-    {
-        mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
-        mViewGrid.SetPosition(350.0f, 100.0f);
-        SetNewGame();
-        InitCounter(Settings::START_COUNTER, GAME_CALLBACK(Game::GameReady, this),  getGameString());
-        
-        mModelGrid = std::make_shared<ModelGrid>(
-                                                 Settings::MODEL_GRID_WIDTH,
-                                                 Settings::MODEL_GRID_HEIGHT,
-                                                 Settings::MODEL_GRID_MATCH_LENGTH);
-        mViewGrid.SetModel(mModelGrid);
-        
-        
-        
-        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
-        mCallBacks.insert(callBackTime);
-    }
     void InitRoot()
     {
         mRoot = std::make_unique<View>();
@@ -89,8 +66,17 @@ public:
         mCounter->SetPosition(Position(150,350));
     }
     
-    void SetNewGame()
+	void Start() {
+        InitModelViewComponents();
+		mEngine.Start(*this);
+	}
+    
+    void InitModelViewComponents()
     {
+        mGameStateMachine.SendEvent(StateMachine::Event::RESUME);
+        
+        //create grid view
+        mViewGrid.SetPosition(350.0f, 100.0f);
         mRoot->AddChild(&mViewGrid);
         
         //clear all callbacks
@@ -99,18 +85,29 @@ public:
         
         //clear all informations
         ClearInfo();
+        
+        InitCounter(Settings::START_COUNTER, GAME_CALLBACK(Game::OnGameReady, this),  getGameString());
+        
+        mModelGrid = std::make_shared<ModelGrid>(
+                                                 Settings::MODEL_GRID_WIDTH,
+                                                 Settings::MODEL_GRID_HEIGHT,
+                                                 Settings::MODEL_GRID_MATCH_LENGTH);
+        mViewGrid.SetModel(mModelGrid);
+        
+        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnSecondElapsed, this), 1);
+        mCallBacks.insert(callBackTime);
     }
     
-    void RestartGame()
+    void OnRestartGame()
     {
         mViewGrid = ViewGrid(Settings::VIEW_GRID_SPACING, Settings::VIEW_GEM_DEBUG_LABEL_OFFSET);
         mGameStateMachine.SendEvent(StateMachine::Event::NONE);
     }
     
-    void GameReady()
+    void OnGameReady()
     {
         mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
-        InitCounter(Settings::GAME_COUNTER, GAME_CALLBACK(Game::OnGameEnd, this) ,getGameString());
+        InitCounter(Settings::GAME_COUNTER, GAME_CALLBACK(Game::OnGameEnd, this) , getGameString());
     }
 
 
@@ -213,7 +210,7 @@ public:
                 OnSwipeWithClick(currentCoordinate, startCoordinate);
                 break;
             case StateMachine::State::RESTART:
-                OnStart();
+                InitModelViewComponents();
                 break;
 
             default:
@@ -234,7 +231,7 @@ public:
         WriteInfo("GAME OVER");
         mCounter->setVisible(false);
         
-        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::RestartGame, this), 3);
+        auto callBackTime = std::make_shared<CallBack>(GAME_CALLBACK(Game::OnRestartGame, this), 3);
         mCallBacks.insert(callBackTime);
     }
     

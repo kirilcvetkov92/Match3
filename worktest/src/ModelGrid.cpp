@@ -24,16 +24,15 @@ void ModelGrid::Match() {
 			gemPtr->mState = ModelGem::State::MATCHED;
 		}
 	}
-
 }
 
 void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
 {
-    std::pair<int, int> neighbours[] = {{1,0}, {0,1}, {-1,0}, {0,-1}};
+    size_t maxDistance = Settings::NEIGHBOURS_DISTANCE;
+    std::pair<int, int> neighbours[] = {{maxDistance,0}, {0,maxDistance}, {-maxDistance,0}, {0,-maxDistance}};
     size_t minDistance = fabs((int)gemFrom.mX-(int)gemTo.mX)+fabs((int)gemFrom.mY-(int)gemTo.mY);
     Coordinate nearestNeighbour = gemTo;
     
-    //todo unnecesary
     for (auto neighbour : neighbours)
     {
         int mx = (int)gemFrom.mX+neighbour.first;
@@ -57,7 +56,6 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
     if(!mGems.count(gemFrom) || !mGems.count(gemTo))
         return;
     
-
     std::shared_ptr<ModelGem> modelGemFrom = mGems[gemFrom];
     std::shared_ptr<ModelGem> modelGemTo = mGems[gemTo];
     
@@ -73,7 +71,7 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
 
     std::vector<std::weak_ptr<ModelGem>> matchedGems = FindMatchedGems();
     
-    //todo refactor
+    //Todo (Naive search, not efficient)
     bool found = false;
     for(auto &gem : matchedGems)
     {
@@ -91,10 +89,12 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
     }
     if(!found)
     {
+        // swap back
         mGems[gemTo]=modelGemTo;
         mGems[gemFrom]=modelGemFrom;
         modelGemFrom->mState=ModelGem::State::SWAPPING;
         modelGemTo->mState=ModelGem::State::SWAPPING;
+        
         mTransitions.insert({modelGemFrom, {gemFromP, gemToP}});
         mTransitions.insert({modelGemTo, {gemToP, gemFromP}});
         mTransitions.insert({modelGemFrom, {gemToP, gemFromP}});
@@ -115,6 +115,11 @@ const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& ModelGrid::GetG
 	return mGems;
 }
 
+std::unordered_map<Position, Position> & ModelGrid::GetRoof() 
+{
+    return  mRoof;
+}
+
 const std::multimap<std::shared_ptr<ModelGem>, std::pair<Position,Position>>& ModelGrid::GetTransitions() const {
     return mTransitions;
 }
@@ -124,16 +129,7 @@ void ModelGrid::ClearTransitions() {
 }
 void ModelGrid::Initialise() {
 	mGems.clear();
-//    for(size_t column = 0; column < mWidth; column++) {
-//        for(size_t row = 0; row < mHeight; row++) {
-//            mGems.insert({
-//                Coordinate{ column, row },
-//                std::make_unique<ModelGem>(ModelGem::GetRandomColor())
-//            });
-//        }
-//    }
-//
-GenerateGemsOnTop();
+    GenerateGemsOnTop();
 }
 
 std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
@@ -141,7 +137,7 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
 	for (auto iterator : mGems) {
 		auto& coordinate = iterator.first;
 		auto& gem = iterator.second;
-		if ((gem->mState == ModelGem::State::RESTING || gem->mState == ModelGem::State::SWAPPING) &&
+		if ((gem->mState == ModelGem::State::RESTING) &&
 			IsCoordinatePartOfMatch(mGems, coordinate, mWidth, mHeight, mMatchLength)) {
 			result.push_back(gem);
 		}
@@ -164,12 +160,14 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
                 {
                     auto iterator = mGems.find(currentCoordinate);
                     auto &candidateDropGem = iterator->second;;
-                    if(candidateDropGem->mState == ModelGem::State::RESTING)
+                    if(candidateDropGem->mState == ModelGem::State::RESTING ||
+                       candidateDropGem->mState == ModelGem::State::FALLING)
                     {
+
                         result.push_back(candidateDropGem);
                     }
                 }
-                else break;
+         
             }
         }
     }
@@ -199,7 +197,8 @@ void ModelGrid::MoveDroppedGems()
                     auto dropIterator = mGems.find(nextCoordinate);
                     if(dropIterator != mGems.end() || currentRow+1==mHeight)
                     {
-
+                        
+                        mGems.erase(dropCoordinate);
                         mGems.erase(coordinate);
                         mGems.insert({dropCoordinate, gem});
                     
@@ -259,18 +258,48 @@ void ModelGrid::GenerateGemsOnTop()
                         }
                     }
                 }
-            }
+
             auto modelGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor(restrictedColors));
+              modelGem->mState = ModelGem::State::FALLING;
+
+            int roofRow=-4;
+            int t=-4;
+            
+            for(int i=0; i<100;i++)
+            {
+                if(mRoof.count(Position(column,roofRow)))
+                {
+                    t=fmin(t,roofRow);
+                }
+                roofRow-=2;
+            }
+                roofRow=t-2;
+            
             mGems.insert({
-                Coordinate{column, row-1},
+                Coordinate(column, row-1),
                 modelGem
             });
-//
+
             float sourceX = (float)column;
-            float sourceY = (float)row-mHeight;
+            float sourceY = (float)roofRow;
             float destinationX = (float)column;
             float destinationY = (float)row-1;
+            
             mTransitions.insert({modelGem, {Position(sourceX, sourceY), Position(destinationX, destinationY)}});
+            
+                
+
+            if(mRoof.count(Position(destinationX, destinationY)))
+            {
+                Position k = mRoof.find(Position(destinationX, destinationY))->second;
+                mRoof.erase(k);
+                mRoof.erase(Position(destinationX, destinationY));
+           
+            }
+            
+            mRoof.insert({Position(sourceX, sourceY), Position(destinationX, destinationY)});
+            mRoof.insert({Position(destinationX, destinationY), Position(sourceX, sourceY)});
+        }
         }
     }
 }
@@ -284,6 +313,7 @@ std::shared_ptr<ModelGem> ModelGrid::getGem(size_t column, size_t row) const
         return iterator->second;
     else return nullptr;
 }
+
 
 void ModelGrid::RemoveMatchedGems()
 {
