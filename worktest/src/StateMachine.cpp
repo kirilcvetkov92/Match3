@@ -26,8 +26,6 @@ StateMachine::State& StateMachine::GetCurrentState()
     return mCurrentState;
 }
 
-
-
 void StateMachine::SetCurrentState(StateMachine::State state)
 {
     mCurrentState = state;
@@ -149,7 +147,7 @@ void StateMachine::OnTouchBegin2(Event event)
         case StateMachine::Event::TOUCH_BEGIN:
             SetCurrentState(StateMachine::State::CORRECT_START_POSITION);
             break;
-
+            
         case StateMachine::Event::EXIT:
             SetCurrentState(StateMachine::State::END);
             break;
@@ -211,7 +209,7 @@ void StateMachine::OnIdle(Event event)
 
 void StateMachine::OnCorrectStartPosition(Event event)
 {
-     SetCurrentState(StateMachine::State::READY);
+    SetCurrentState(StateMachine::State::READY);
 }
 
 void StateMachine::OnEnd(Event event)

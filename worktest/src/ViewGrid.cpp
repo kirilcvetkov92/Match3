@@ -2,14 +2,14 @@
 #include "Settings.h"
 
 ViewGrid::ViewGrid(
-	float gemSpacing,
-	float gemDebugLabelOffset)
+                   float gemSpacing,
+                   float gemDebugLabelOffset)
 : mGemSpacing(gemSpacing)
 , mGemDebugLabelOffset(gemDebugLabelOffset)
 {}
 
 void ViewGrid::SetModel(std::weak_ptr<ModelGrid> model) {
-	mModel = model;
+    mModel = model;
 }
 
 void ViewGrid::UpdateViews() {
@@ -33,7 +33,7 @@ void ViewGrid::RemoveGems()
 void ViewGrid::UpdateGemViews()
 {
     if (auto model = mModel.lock()) {
-    
+        
         const auto& gems = model->GetGems();
         for (auto iterator : gems) {
             
@@ -69,7 +69,7 @@ void ViewGrid::CreateNewGem(std::shared_ptr<ModelGem> &gem)
 
 void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<ModelGem> &gemModel, bool c)
 {
-
+    
     if (auto model = mModel.lock()) {
         auto &transitions = model->GetTransitions();
         auto &gemView = mViews.find(gemModel)->second;
@@ -107,15 +107,15 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
             auto &roof = model->GetRoof();
             Position cToP = Position(coordinate.mX, coordinate.mY);
             
-          
+            
             if(roof.count(cToP))
             {
-
+                
                 auto position = roof.find(cToP);
                 Position t = position->second;
                 roof.erase(t);
                 roof.erase(cToP);
-
+                
             }
         }
     }
@@ -125,7 +125,7 @@ bool ViewGrid::ApplyInteraction(Position onClick, Position onMove)
 {
     Coordinate gemOnClick = MapPositionCoordinateToGrid(onClick);
     Coordinate gemOnMove= MapPositionCoordinateToGrid(onMove);
-
+    
     if(!(gemOnClick==gemOnMove))
     {
         //find nearest neighbours

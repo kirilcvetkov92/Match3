@@ -22,29 +22,29 @@ void View::SetPosition(Position position) {
 }
 
 void View::SetPosition(float x, float y) {
-	mPosition.mX = x;
-	mPosition.mY = y;
+    mPosition.mX = x;
+    mPosition.mY = y;
 }
 
 const Position& View::GetPosition() const {
-	return mPosition;
+    return mPosition;
 }
 
 void View::SetRotation(const float rotation) {
-	mRotation = rotation;
+    mRotation = rotation;
 }
 
 void View::AddChild(View* view) {
-	mChildren.push_back(view);
+    mChildren.push_back(view);
 }
 
 void View::RemoveChild(View* view) {
-	auto removal = std::remove(mChildren.begin(), mChildren.end(), view);
-	mChildren.erase(removal, mChildren.end());
+    auto removal = std::remove(mChildren.begin(), mChildren.end(), view);
+    mChildren.erase(removal, mChildren.end());
 }
 
 void View::RemoveAllChildren() {
-	mChildren.clear();
+    mChildren.clear();
 }
 
 void View::RunMoveAction(std::shared_ptr<MoveTo> &action){

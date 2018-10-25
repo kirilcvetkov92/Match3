@@ -11,7 +11,7 @@ namespace Settings {
 	
 	static const float VIEW_GEM_DEBUG_LABEL_OFFSET = 20.0f;
     static const float SPEED = 9.81f*35;
-    static const int GAME_COUNTER = 60;
+    static const int GAME_COUNTER = 3;
     static const int START_COUNTER = 3;
     static const int NEIGHBOURS_DISTANCE = 1;
 

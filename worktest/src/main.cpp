@@ -25,26 +25,26 @@ class Game : public King::Updater {
     typedef Position ClickPosition;
     
 public:
-	Game()
-	: mEngine(ASSETS_PATH)
-	, mViewGrid(
-		Settings::VIEW_GRID_SPACING,
-		Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
+    Game()
+    : mEngine(ASSETS_PATH)
+    , mViewGrid(
+                Settings::VIEW_GRID_SPACING,
+                Settings::VIEW_GEM_DEBUG_LABEL_OFFSET)
     , mCallBacks()
     , mGameStateMachine()
-	, mMouseButtonWasDown(true)
+    , mMouseButtonWasDown(true)
     , mStartClick(INT_MIN,INT_MIN)
     , mCurrentClick(INT_MIN,INT_MIN)
     {
         InitRoot();
         
-	}
+    }
     
     ~Game()
     {
         mRoot->RemoveAllChildren();
     }
-	
+    
     void InitRoot()
     {
         mRoot = std::make_unique<View>();
@@ -66,10 +66,10 @@ public:
         mCounter->SetPosition(Position(150,350));
     }
     
-	void Start() {
+    void Start() {
         InitModelViewComponents();
-		mEngine.Start(*this);
-	}
+        mEngine.Start(*this);
+    }
     
     void InitModelViewComponents()
     {
@@ -109,8 +109,7 @@ public:
         mGameStateMachine.SendEvent(StateMachine::Event::INITIALIZED);
         InitCounter(Settings::GAME_COUNTER, GAME_CALLBACK(Game::OnGameEnd, this) , getGameString());
     }
-
-
+    
     void WriteInfo(const std::string &message)
     {
         mInfoLabel->setVisible(true);
@@ -155,17 +154,17 @@ public:
             else
                 callback->Update();
         }
-       
+        
         for(auto callback : callbacksForRemoval)
         {
             mCallBacks.erase(callback);
         }
     }
     
-	void Update() override {
+    void Update() override {
         
-		if (mEngine.GetMouseButtonDown()) {
-			mMouseButtonWasDown = true;
+        if (mEngine.GetMouseButtonDown()) {
+            mMouseButtonWasDown = true;
             Position newClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
             
             if(!(mCurrentClick==newClick))
@@ -173,19 +172,19 @@ public:
                 mCurrentClick = newClick;
                 mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
             }
-		}
+        }
         else if (mMouseButtonWasDown) {
             mMouseButtonWasDown = false;
             mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_END);
-		}
+        }
         
         makeStateActions();
         mViewGrid.UpdateViews();
         UpdateCallBacks();
-
-		mRoot->Render(mEngine);
-	}
-	
+        
+        mRoot->Render(mEngine);
+    }
+    
     void makeStateActions()
     {
         StateMachine::State currentState = mGameStateMachine.GetCurrentState();
@@ -212,7 +211,7 @@ public:
             case StateMachine::State::RESTART:
                 InitModelViewComponents();
                 break;
-
+                
             default:
                 mModelGrid->Match();
                 mModelGrid->Drop();
@@ -227,7 +226,7 @@ public:
     {
         mRoot->RemoveChild(&mViewGrid);
         mGameStateMachine.SendEvent(StateMachine::Event::EXIT);
-
+        
         WriteInfo("GAME OVER");
         mCounter->setVisible(false);
         
@@ -248,7 +247,7 @@ public:
             mGameStateMachine.SendEvent(StateMachine::Event::TOUCH_BEGIN);
             mStartClick = Position(mEngine.GetMouseX(), mEngine.GetMouseY());
         }
-
+        
     }
     
     void OnSwipeWithClick(Coordinate &start, Coordinate &current)
@@ -300,12 +299,12 @@ public:
     }
     
 private:
-	King::Engine mEngine;
-
-	std::shared_ptr<ModelGrid> mModelGrid;
-	
-	ViewGrid mViewGrid;
-    std::unique_ptr<ViewSprite> mBackground; 
+    King::Engine mEngine;
+    
+    std::shared_ptr<ModelGrid> mModelGrid;
+    
+    ViewGrid mViewGrid;
+    std::unique_ptr<ViewSprite> mBackground;
     std::unique_ptr<ViewText> mCounter;
     std::unique_ptr<ViewText> mInfoLabel;
     std::unique_ptr<View> mRoot;
@@ -314,7 +313,7 @@ private:
     
     StateMachine mGameStateMachine;
     
-	bool mMouseButtonWasDown;
+    bool mMouseButtonWasDown;
     int mTime=0;
     
     Position mStartClick;
@@ -323,7 +322,7 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-	Game application;
-	application.Start();
-	return 0;
+    Game application;
+    application.Start();
+    return 0;
 }

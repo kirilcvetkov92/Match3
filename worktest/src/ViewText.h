@@ -9,13 +9,13 @@
 
 class ViewText : public View {
 public:
-	virtual void Render(King::Engine& engine) override;
-	
-	void SetTextItem(King::Engine::Texts textItem);
-
-	void SetTextString(std::string textString);
-
+    virtual void Render(King::Engine& engine) override;
+    
+    void SetTextItem(King::Engine::Texts textItem);
+    
+    void SetTextString(std::string textString);
+    
 private:
-	King::Engine::Texts mTextItem;
-	std::string mTextString;
+    King::Engine::Texts mTextItem;
+    std::string mTextString;
 };

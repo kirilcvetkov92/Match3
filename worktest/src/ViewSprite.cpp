@@ -2,10 +2,10 @@
 #include "Position.h"
 
 void ViewSprite::Render(King::Engine& engine) {
-	engine.Render(mTexture, mPosition.mX, mPosition.mY, mRotation);
-	View::Render(engine);
+    engine.Render(mTexture, mPosition.mX, mPosition.mY, mRotation);
+    View::Render(engine);
 }
 
 void ViewSprite::SetTexture(King::Engine::Texture texture) {
-	mTexture = texture;
+    mTexture = texture;
 }

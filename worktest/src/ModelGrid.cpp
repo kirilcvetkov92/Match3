@@ -14,16 +14,16 @@ ModelGrid::ModelGrid(size_t width, size_t height, size_t matchLength)
 , mMatchLength(matchLength)
 
 {
-	Initialise();
+    Initialise();
 }
 
 void ModelGrid::Match() {
-	std::vector<std::weak_ptr<ModelGem>> matchedGems = FindMatchedGems();
-	for (auto& gem : matchedGems) {
-		if (auto gemPtr = gem.lock()) {
-			gemPtr->mState = ModelGem::State::MATCHED;
-		}
-	}
+    std::vector<std::weak_ptr<ModelGem>> matchedGems = FindMatchedGems();
+    for (auto& gem : matchedGems) {
+        if (auto gemPtr = gem.lock()) {
+            gemPtr->mState = ModelGem::State::MATCHED;
+        }
+    }
 }
 
 void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
@@ -68,7 +68,7 @@ void ModelGrid::TryMatch(Coordinate gemFrom, Coordinate gemTo)
     
     Position gemFromP = Position(gemFrom.mX, gemFrom.mY);
     Position gemToP = Position(gemTo.mX, gemTo.mY);
-
+    
     std::vector<std::weak_ptr<ModelGem>> matchedGems = FindMatchedGems();
     
     //Todo (Naive search, not efficient)
@@ -112,7 +112,7 @@ void ModelGrid::Drop() {
 }
 
 const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& ModelGrid::GetGems() const {
-	return mGems;
+    return mGems;
 }
 
 std::unordered_map<Position, Position> & ModelGrid::GetRoof() 
@@ -128,21 +128,21 @@ void ModelGrid::ClearTransitions() {
     return mTransitions.clear();
 }
 void ModelGrid::Initialise() {
-	mGems.clear();
+    mGems.clear();
     GenerateGemsOnTop();
 }
 
 std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindMatchedGems() const {
-	std::vector<std::weak_ptr<ModelGem>> result;
-	for (auto iterator : mGems) {
-		auto& coordinate = iterator.first;
-		auto& gem = iterator.second;
-		if ((gem->mState == ModelGem::State::RESTING) &&
-			IsCoordinatePartOfMatch(mGems, coordinate, mWidth, mHeight, mMatchLength)) {
-			result.push_back(gem);
-		}
-	}
-	return result;
+    std::vector<std::weak_ptr<ModelGem>> result;
+    for (auto iterator : mGems) {
+        auto& coordinate = iterator.first;
+        auto& gem = iterator.second;
+        if ((gem->mState == ModelGem::State::RESTING) &&
+            IsCoordinatePartOfMatch(mGems, coordinate, mWidth, mHeight, mMatchLength)) {
+            result.push_back(gem);
+        }
+    }
+    return result;
 }
 
 std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
@@ -163,11 +163,11 @@ std::vector<std::weak_ptr<ModelGem>> ModelGrid::FindDroppingGems() const {
                     if(candidateDropGem->mState == ModelGem::State::RESTING ||
                        candidateDropGem->mState == ModelGem::State::FALLING)
                     {
-
+                        
                         result.push_back(candidateDropGem);
                     }
                 }
-         
+                
             }
         }
     }
@@ -182,10 +182,10 @@ void ModelGrid::MoveDroppedGems()
         {
             Coordinate coordinate(column,row-1);
             auto iterator = mGems.find(coordinate);
-
+            
             if(iterator == mGems.end())
                 continue;
-
+            
             std::shared_ptr<ModelGem> gem = iterator->second;
             if (gem->mState == ModelGem::State::DROPPING){
                 gem->mState = ModelGem::State::FALLING;
@@ -193,7 +193,7 @@ void ModelGrid::MoveDroppedGems()
                 {
                     Coordinate dropCoordinate(column, currentRow);
                     Coordinate nextCoordinate(column, currentRow+1);
-
+                    
                     auto dropIterator = mGems.find(nextCoordinate);
                     if(dropIterator != mGems.end() || currentRow+1==mHeight)
                     {
@@ -201,7 +201,7 @@ void ModelGrid::MoveDroppedGems()
                         mGems.erase(dropCoordinate);
                         mGems.erase(coordinate);
                         mGems.insert({dropCoordinate, gem});
-                    
+                        
                         Position dropCoordinateP(column, currentRow);
                         Position coordinateP(column,row-1);
                         
@@ -258,48 +258,48 @@ void ModelGrid::GenerateGemsOnTop()
                         }
                     }
                 }
-
-            auto modelGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor(restrictedColors));
-              modelGem->mState = ModelGem::State::FALLING;
-
-            int roofRow=-4;
-            int t=-4;
-            
-            for(int i=0; i<100;i++)
-            {
-                if(mRoof.count(Position(column,roofRow)))
-                {
-                    t=fmin(t,roofRow);
-                }
-                roofRow-=2;
-            }
-                roofRow=t-2;
-            
-            mGems.insert({
-                Coordinate(column, row-1),
-                modelGem
-            });
-
-            float sourceX = (float)column;
-            float sourceY = (float)roofRow;
-            float destinationX = (float)column;
-            float destinationY = (float)row-1;
-            
-            mTransitions.insert({modelGem, {Position(sourceX, sourceY), Position(destinationX, destinationY)}});
-            
                 
-
-            if(mRoof.count(Position(destinationX, destinationY)))
-            {
-                Position k = mRoof.find(Position(destinationX, destinationY))->second;
-                mRoof.erase(k);
-                mRoof.erase(Position(destinationX, destinationY));
-           
+                auto modelGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor(restrictedColors));
+                modelGem->mState = ModelGem::State::FALLING;
+                
+                int roofRow=-4;
+                int t=-4;
+                
+                for(int i=0; i<100;i++)
+                {
+                    if(mRoof.count(Position(column,roofRow)))
+                    {
+                        t=fmin(t,roofRow);
+                    }
+                    roofRow-=2;
+                }
+                roofRow=t-2;
+                
+                mGems.insert({
+                    Coordinate(column, row-1),
+                    modelGem
+                });
+                
+                float sourceX = (float)column;
+                float sourceY = (float)roofRow;
+                float destinationX = (float)column;
+                float destinationY = (float)row-1;
+                
+                mTransitions.insert({modelGem, {Position(sourceX, sourceY), Position(destinationX, destinationY)}});
+                
+                
+                
+                if(mRoof.count(Position(destinationX, destinationY)))
+                {
+                    Position k = mRoof.find(Position(destinationX, destinationY))->second;
+                    mRoof.erase(k);
+                    mRoof.erase(Position(destinationX, destinationY));
+                    
+                }
+                
+                mRoof.insert({Position(sourceX, sourceY), Position(destinationX, destinationY)});
+                mRoof.insert({Position(destinationX, destinationY), Position(sourceX, sourceY)});
             }
-            
-            mRoof.insert({Position(sourceX, sourceY), Position(destinationX, destinationY)});
-            mRoof.insert({Position(destinationX, destinationY), Position(sourceX, sourceY)});
-        }
         }
     }
 }
@@ -330,56 +330,56 @@ void ModelGrid::RemoveMatchedGems()
 
 
 bool ModelGrid::IsCoordinatePartOfMatch(
-	const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,
-	Coordinate coordinate,
-	size_t width,
-	size_t height,
-	size_t matchLength) {
-	auto iterator = gems.find(coordinate);
-	if (iterator == gems.end()) {
-		return false;
-	}
-	
-	enum class Axis {
-		COLUMN,
-		ROW
-	};
-	
-	static auto checkRun = [](
-		const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,
-		Coordinate coordinate,
-		size_t matchLength,
-		ModelGem::Color color,
-		Axis axis,
-		size_t axisLimit) {
-		int padding = std::max(0, static_cast<int>(matchLength) - 1);
-		size_t axisPosition = (axis == Axis::COLUMN) ? coordinate.mX : coordinate.mY;
-		
-		size_t start = std::max(static_cast<int>(axisPosition) - padding, 0);
-		size_t end = std::min(static_cast<int>(axisPosition) + padding, static_cast<int>(axisLimit) - 1);
-		
-		size_t run = 0;
-		
-		for(size_t position = start; position <= end; position++) {
-			auto neighbor = gems.find(
-				(axis == Axis::COLUMN) ?
-				Coordinate(position, coordinate.mY) :
-				Coordinate(coordinate.mX, position));
-			if ((neighbor != gems.end()) &&
+                                        const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,
+                                        Coordinate coordinate,
+                                        size_t width,
+                                        size_t height,
+                                        size_t matchLength) {
+    auto iterator = gems.find(coordinate);
+    if (iterator == gems.end()) {
+        return false;
+    }
+    
+    enum class Axis {
+        COLUMN,
+        ROW
+    };
+    
+    static auto checkRun = [](
+                              const std::unordered_map<Coordinate, std::shared_ptr<ModelGem>>& gems,
+                              Coordinate coordinate,
+                              size_t matchLength,
+                              ModelGem::Color color,
+                              Axis axis,
+                              size_t axisLimit) {
+        int padding = std::max(0, static_cast<int>(matchLength) - 1);
+        size_t axisPosition = (axis == Axis::COLUMN) ? coordinate.mX : coordinate.mY;
+        
+        size_t start = std::max(static_cast<int>(axisPosition) - padding, 0);
+        size_t end = std::min(static_cast<int>(axisPosition) + padding, static_cast<int>(axisLimit) - 1);
+        
+        size_t run = 0;
+        
+        for(size_t position = start; position <= end; position++) {
+            auto neighbor = gems.find(
+                                      (axis == Axis::COLUMN) ?
+                                      Coordinate(position, coordinate.mY) :
+                                      Coordinate(coordinate.mX, position));
+            if ((neighbor != gems.end()) &&
                 (neighbor->second->mColor == color && neighbor->second->mState==ModelGem::State::RESTING)) {
-				run++;
-				if (run >= matchLength) {
-					return true;
-				}
-			} else {
-				run = 0;
-			}
-		}
-		return false;
-	};
-	
-	return (
-		checkRun(gems, coordinate, matchLength, iterator->second->mColor, Axis::COLUMN, width) ||
-		checkRun(gems, coordinate, matchLength, iterator->second->mColor, Axis::ROW, height));
+                run++;
+                if (run >= matchLength) {
+                    return true;
+                }
+            } else {
+                run = 0;
+            }
+        }
+        return false;
+    };
+    
+    return (
+            checkRun(gems, coordinate, matchLength, iterator->second->mColor, Axis::COLUMN, width) ||
+            checkRun(gems, coordinate, matchLength, iterator->second->mColor, Axis::ROW, height));
 }
 
