@@ -90,7 +90,7 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
                 gemView->SetPosition(MapGridPositionToGlobalPosition(sourceCoordinate));
             
             float distance = abs(MapGridPositionToGlobalPosition(destinationCoordinate).mY - MapGridPositionToGlobalPosition(sourceCoordinate).mY)+abs(MapGridPositionToGlobalPosition(destinationCoordinate).mX-MapGridPositionToGlobalPosition(sourceCoordinate).mX);
-            //loat speedUp = fmax(1,pow(distance/100.0f, 0.2));
+
             float time = distance/(Settings::SPEED);
             
             Position destination(MapGridPositionToGlobalPosition(destinationCoordinate));
@@ -99,23 +99,21 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
             gemView->RunMoveAction(action);
         }
         
-        if(gemView->mCurrentMoveAction || !gemView->mMoveActions.empty())
+        bool containsActions = (gemView->mCurrentMoveAction || !gemView->mMoveActions.empty());
+        if(containsActions)
             gemView->UpdateMoveActions();
         else
         {
             gemView->SetPosition(MapGridCoordinateToPosition(coordinate));
+            
             auto &roof = model->GetRoof();
-            Position cToP = Position(coordinate.mX, coordinate.mY);
-            
-            
-            if(roof.count(cToP))
+            Position destinationPosition = Position(coordinate.mX, coordinate.mY);
+            if(roof.count(destinationPosition))
             {
-                
-                auto position = roof.find(cToP);
-                Position t = position->second;
-                roof.erase(t);
-                roof.erase(cToP);
-                
+                auto itr = roof.find(destinationPosition);
+                Position sourcePosition = itr->second;
+                roof.erase(sourcePosition);
+                roof.erase(destinationPosition);
             }
         }
     }

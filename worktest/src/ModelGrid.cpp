@@ -262,18 +262,18 @@ void ModelGrid::GenerateGemsOnTop()
                 auto modelGem = std::make_shared<ModelGem>(ModelGem::GetRandomColor(restrictedColors));
                 modelGem->mState = ModelGem::State::FALLING;
                 
-                int roofRow=-4;
-                int t=-4;
+                int roofOffset=-Settings::ROOF_OFFSET;
+                int t=roofOffset;
                 
-                for(int i=0; i<100;i++)
+                for(int i=0; i<2*Settings::MODEL_GRID_HEIGHT;i++)
                 {
-                    if(mRoof.count(Position(column,roofRow)))
+                    if(mRoof.count(Position(column,roofOffset)))
                     {
-                        t=fmin(t,roofRow);
+                        t=fmin(t,roofOffset);
                     }
-                    roofRow-=2;
+                    roofOffset-=Settings::GEM_ROOF_OFFSET;
                 }
-                roofRow=t-2;
+                roofOffset=t-Settings::GEM_ROOF_OFFSET;
                 
                 mGems.insert({
                     Coordinate(column, row-1),
@@ -281,24 +281,26 @@ void ModelGrid::GenerateGemsOnTop()
                 });
                 
                 float sourceX = (float)column;
-                float sourceY = (float)roofRow;
+                float sourceY = (float)roofOffset;
                 float destinationX = (float)column;
                 float destinationY = (float)row-1;
                 
-                mTransitions.insert({modelGem, {Position(sourceX, sourceY), Position(destinationX, destinationY)}});
+                
+                Position sourcePosition = Position(sourceX, sourceY);
+                Position destinationPosition = Position(destinationX, destinationY);
+                
+                mTransitions.insert({modelGem, {sourcePosition, destinationPosition}});
                 
                 
-                
-                if(mRoof.count(Position(destinationX, destinationY)))
+                if(mRoof.count(destinationPosition))
                 {
-                    Position k = mRoof.find(Position(destinationX, destinationY))->second;
-                    mRoof.erase(k);
-                    mRoof.erase(Position(destinationX, destinationY));
-                    
+                    Position pastSourcePosition = mRoof.find(destinationPosition)->second;
+                    mRoof.erase(pastSourcePosition);
+                    mRoof.erase(destinationPosition);
                 }
                 
-                mRoof.insert({Position(sourceX, sourceY), Position(destinationX, destinationY)});
-                mRoof.insert({Position(destinationX, destinationY), Position(sourceX, sourceY)});
+                mRoof.insert({sourcePosition, destinationPosition});
+                mRoof.insert({destinationPosition, sourcePosition});
             }
         }
     }
