@@ -3,7 +3,7 @@
 
 #include <king/Updater.h>
 #include <string>
-
+#include "Settings.h"
 ViewGem::ViewGem(
                  const std::weak_ptr<ModelGem> model,
                  float debugLabelOffset)
@@ -20,6 +20,7 @@ void ViewGem::Render(King::Engine& engine) {
     ViewSprite::Render(engine);
     
     if (auto model = mModel.lock()) {
+        
         engine.Render(
                       King::Engine::Texts::TEXT_ITEM_01,
                       MapGemStateToDebugLabel(model->mState),
@@ -30,20 +31,24 @@ void ViewGem::Render(King::Engine& engine) {
 }
 
 const char* ViewGem::MapGemStateToDebugLabel(ModelGem::State state) {
-    switch (state) {
-        case ModelGem::State::DROPPING:
-            return "d";
-        case ModelGem::State::SWAPPING:
-            return "s";
-        case ModelGem::State::MATCHED:
-            return "m";
-        case ModelGem::State::FALLING:
-            return "f";
-        case ModelGem::State::RESTING:
-            return " ";
-        default:
-            return "?";
-    }
+    
+    if(Settings::DEBUG)
+        switch (state) {
+            case ModelGem::State::DROPPING:
+                return "d";
+            case ModelGem::State::SWAPPING:
+                return "s";
+            case ModelGem::State::MATCHED:
+                return "m";
+            case ModelGem::State::FALLING:
+                return "f";
+            case ModelGem::State::RESTING:
+                return " ";
+            default:
+                return "?";
+        }
+
+    return "";
 }
 
 void ViewGem::UpdateMoveActions()

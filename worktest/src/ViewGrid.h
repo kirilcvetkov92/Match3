@@ -31,7 +31,7 @@ private:
     void UpdateGemViews();
     void CreateNewGem(std::shared_ptr<ModelGem> &gem);
     void UpdateGemTransition(Coordinate &coodinate, std::shared_ptr<ModelGem> &gem, bool c);
-    
+
     std::map<std::weak_ptr<ModelGem>, std::unique_ptr<ViewGem>, std::owner_less<std::weak_ptr<ModelGem>>> mViews;
     std::weak_ptr<ModelGrid> mModel;
     

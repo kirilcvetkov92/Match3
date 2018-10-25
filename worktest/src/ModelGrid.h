@@ -25,7 +25,9 @@ public:
     std::unordered_map<Position, Position>& GetRoof() ;
 
     void TryMatch(Coordinate gemFrom, Coordinate gemTo);
-    
+    void RemoveFromRoof(Position &position);
+    void InsertToRoof(Position &sourcePosition, Position &destinationPosition);
+
     
 private:
 	void Initialise();

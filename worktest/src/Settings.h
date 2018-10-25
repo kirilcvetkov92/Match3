@@ -16,4 +16,6 @@ namespace Settings {
     static const int NEIGHBOURS_DISTANCE = 1;
     static const int ROOF_OFFSET = 4;
     static const int GEM_ROOF_OFFSET = 2;
+    
+    static const bool DEBUG = false;
 }

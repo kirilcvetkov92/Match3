@@ -292,20 +292,30 @@ void ModelGrid::GenerateGemsOnTop()
                 mTransitions.insert({modelGem, {sourcePosition, destinationPosition}});
                 
                 
-                if(mRoof.count(destinationPosition))
-                {
-                    Position pastSourcePosition = mRoof.find(destinationPosition)->second;
-                    mRoof.erase(pastSourcePosition);
-                    mRoof.erase(destinationPosition);
-                }
-                
-                mRoof.insert({sourcePosition, destinationPosition});
-                mRoof.insert({destinationPosition, sourcePosition});
+                RemoveFromRoof(destinationPosition);
+                InsertToRoof(sourcePosition, destinationPosition);
             }
         }
     }
 }
 
+void ModelGrid::RemoveFromRoof(Position &position)
+{
+    if(mRoof.count(position))
+    {
+        auto itr = mRoof.find(position);
+        Position sourcePosition = itr->second;
+        mRoof.erase(sourcePosition);
+        mRoof.erase(position);
+    }
+}
+
+
+void ModelGrid::InsertToRoof(Position &sourcePosition, Position &destinationPosition)
+{
+    mRoof.insert({sourcePosition, destinationPosition});
+    mRoof.insert({destinationPosition, sourcePosition});
+}
 
 std::shared_ptr<ModelGem> ModelGrid::getGem(size_t column, size_t row) const
 {

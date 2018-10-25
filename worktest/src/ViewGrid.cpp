@@ -40,14 +40,14 @@ void ViewGrid::UpdateGemViews()
             auto coordinate = iterator.first;
             auto &gemModel = iterator.second;
             
-            bool c =false;
+            bool addedToView =false;
             if (!mViews.count(gemModel))
             {
                 CreateNewGem(gemModel);
-                c=true;
+                addedToView=true;
             }
             //update all gem transitions
-            UpdateGemTransition(coordinate, gemModel,c);
+            UpdateGemTransition(coordinate, gemModel, addedToView);
             
         }
         //clear all gem transitions from model
@@ -67,7 +67,7 @@ void ViewGrid::CreateNewGem(std::shared_ptr<ModelGem> &gem)
     AddChild(view);
 }
 
-void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<ModelGem> &gemModel, bool c)
+void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<ModelGem> &gemModel, bool addedToView)
 {
     
     if (auto model = mModel.lock()) {
@@ -86,7 +86,7 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
             Position destinationCoordinate = transition.second;
             
             // if it's the first gem transition, set the initial position
-            if(it==allGemTransitions.first && c)
+            if(it==allGemTransitions.first && addedToView)
                 gemView->SetPosition(MapGridPositionToGlobalPosition(sourceCoordinate));
             
             float distance = abs(MapGridPositionToGlobalPosition(destinationCoordinate).mY - MapGridPositionToGlobalPosition(sourceCoordinate).mY)+abs(MapGridPositionToGlobalPosition(destinationCoordinate).mX-MapGridPositionToGlobalPosition(sourceCoordinate).mX);
@@ -104,20 +104,12 @@ void ViewGrid::UpdateGemTransition(Coordinate &coordinate, std::shared_ptr<Model
             gemView->UpdateMoveActions();
         else
         {
-            gemView->SetPosition(MapGridCoordinateToPosition(coordinate));
-            
-            auto &roof = model->GetRoof();
-            Position destinationPosition = Position(coordinate.mX, coordinate.mY);
-            if(roof.count(destinationPosition))
-            {
-                auto itr = roof.find(destinationPosition);
-                Position sourcePosition = itr->second;
-                roof.erase(sourcePosition);
-                roof.erase(destinationPosition);
-            }
+            Position position = Position(coordinate.mX, coordinate.mY);
+            model->RemoveFromRoof(position);
         }
     }
 }
+
 
 bool ViewGrid::ApplyInteraction(Position onClick, Position onMove)
 {
