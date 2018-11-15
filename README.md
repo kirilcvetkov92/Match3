@@ -1,7 +1,11 @@
 
 
 ## Project version notes
---- 
+
+---  
+[![Introduction video](https://img.youtube.com/vi/af2Vu7YuWpc/0.jpg)](https://www.youtube.com/watch?v=af2Vu7YuWpc)
+---
+
 ### Architectural design decisions
 * StateMachine : Added because of multiple states that UI can have, The game have several states and for easier controll, and avoiding recoursive game flow I dicedided to implement finite state automation to handle with it, also it handle the user swap and click controll.
 
