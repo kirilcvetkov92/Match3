@@ -3,7 +3,7 @@
 ## Project version notes
 
 ---  
-[![Introduction video](https://img.youtube.com/vi/af2Vu7YuWpc/0.jpg)](https://www.youtube.com/watch?v=af2Vu7YuWpc)
+<center>[![Introduction video](https://img.youtube.com/vi/af2Vu7YuWpc/0.jpg)](https://www.youtube.com/watch?v=af2Vu7YuWpc)</center>
 ---
 
 ### Architectural design decisions
