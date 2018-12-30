@@ -10,7 +10,7 @@
 ---
 
 ### Architectural design decisions
-* StateMachine : Added because of multiple states that UI can have, The game have several states and for easier controll, and avoiding recoursive game flow I dicedided to implement finite state automation to handle with it, also it handle the user swap and click controll.
+* StateMachine : Added because of multiple states that UI can have, The game has several states and for easier controll, and avoiding recoursive game flow I dicedided to implement finite state automation to handle with it, also it handle the user swap and click controll.
 
 * Actions :
   * Added timing *function callbacks* for handling events that could happen after some period of time.
